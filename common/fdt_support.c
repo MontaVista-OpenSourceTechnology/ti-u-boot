@@ -1973,7 +1973,7 @@ int fdt_setup_simplefb_node(void *fdt, int node, u64 base_address, u32 width,
 	return 0;
 }
 
-#if IS_ENABLED(CONFIG_VIDEO)
+#if CONFIG_IS_ENABLED(VIDEO)
 int fdt_add_fb_mem_rsv(void *blob)
 {
 	struct fdt_memory mem;
