@@ -218,7 +218,7 @@ static int tilcdc_probe(struct udevice *dev)
 	case 32:
 		break;
 	default:
-		dev_err(dev, "invalid seting, bpp: %d\n", info.bpp);
+		dev_err(dev, "invalid setting, bpp: %d\n", info.bpp);
 		return -EINVAL;
 	}
 
@@ -235,7 +235,7 @@ static int tilcdc_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	err = uclass_get_device_by_name(UCLASS_CLK, "lcd_gclk@534", &clk_dev);
+	err = uclass_get_device_by_name(UCLASS_CLK, "clock-lcd-gclk@534", &clk_dev);
 	if (err) {
 		dev_err(dev, "failed to get lcd_gclk device\n");
 		return err;
@@ -253,7 +253,7 @@ static int tilcdc_probe(struct udevice *dev)
 		return rate;
 	}
 
-	err = uclass_get_device_by_name(UCLASS_CLK, "dpll_disp_m2_ck@4a4",
+	err = uclass_get_device_by_name(UCLASS_CLK, "clock-dpll-disp-m2@4a4",
 					&clk_dev);
 	if (err) {
 		dev_err(dev, "failed to get dpll_disp_m2 clock device\n");
@@ -279,6 +279,7 @@ static int tilcdc_probe(struct udevice *dev)
 	/* point fb behind palette */
 	uc_plat->base += 0x20;
 	uc_plat->size -= 0x20;
+	memset((void *)uc_plat->base, 0xff, uc_plat->size);
 
 	writel(LCDC_CLKC_ENABLE_CORECLKEN | LCDC_CLKC_ENABLE_LIDDCLKEN |
 	       LCDC_CLKC_ENABLE_DMACLKEN, &regs->clkc_enable);
