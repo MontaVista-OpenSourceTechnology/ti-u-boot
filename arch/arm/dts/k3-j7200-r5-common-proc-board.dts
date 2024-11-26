@@ -115,3 +115,11 @@
 		bootph-pre-ram;
 	};
 };
+
+&bucka1 {
+	bootph-pre-ram;
+};
+
+&main_esm {
+	bootph-pre-ram;
+};
