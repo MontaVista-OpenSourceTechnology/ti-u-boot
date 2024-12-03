@@ -308,6 +308,13 @@ static struct module_pin_mux lcd_pin_mux[] = {
 };
 #endif
 
+#if IS_ENABLED(CONFIG_PWM_TI_ECAP)
+static struct module_pin_mux ecap_pin_mux[] = {
+	{OFFSET(ecap0_in_pwm0_out), (MODE(0))},         /* ecap0_in_pwm0_out */
+	{-1},
+};
+#endif
+
 #if defined(CONFIG_NOR_BOOT)
 void enable_norboot_pin_mux(void)
 {
@@ -426,6 +433,10 @@ void enable_board_pin_mux(void)
 
 		#if IS_ENABLED(CONFIG_AM335X_LCD)
 			configure_module_pin_mux(lcd_pin_mux);
+		#endif
+
+		#if IS_ENABLED(CONFIG_PWM_TI_ECAP)
+			configure_module_pin_mux(ecap_pin_mux);
 		#endif
 	} else if (board_is_idk()) {
 		/* Industrial Motor Control (IDK) */
