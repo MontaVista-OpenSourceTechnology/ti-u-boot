@@ -99,9 +99,10 @@
 	};
 
 	backlight: backlight {
-		compatible = "gpio-backlight";
-		gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
-		default-on;
+		compatible = "pwm-backlight";
+		pwms = <&ecap0 0 50000 0>;
+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
+		default-brightness-level = <8>;
 	};
 
 	panel {
