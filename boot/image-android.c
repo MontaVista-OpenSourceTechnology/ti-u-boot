@@ -365,7 +365,7 @@ int android_image_get_kernel(const void *hdr,
 	int len = 0;
 	if (*img_data.kcmdline) {
 		printf("Kernel command line: %s\n", img_data.kcmdline);
-		len += strlen(img_data.kcmdline);
+		len += strlen(img_data.kcmdline) + 1; /* Extra space character needed */
 	}
 
 	if (*img_data.kcmdline_extra) {
@@ -375,27 +375,27 @@ int android_image_get_kernel(const void *hdr,
 
 	char *bootargs = env_get("bootargs");
 	if (bootargs)
-		len += strlen(bootargs);
+		len += strlen(bootargs) + 1; /* Extra space character needed */
 
-	char *newbootargs = malloc(len + 2);
+	char *newbootargs = malloc(len + 1); /* +1 for the '\0' */
 	if (!newbootargs) {
 		puts("Error: malloc in android_image_get_kernel failed!\n");
 		return -ENOMEM;
 	}
-	*newbootargs = '\0';
+	*newbootargs = '\0'; /* set to NULL in case no components below are present */
 
 	if (bootargs) {
 		strcpy(newbootargs, bootargs);
 		strcat(newbootargs, " ");
 	}
 
-	if (*img_data.kcmdline)
+	if (*img_data.kcmdline) {
 		strcat(newbootargs, img_data.kcmdline);
-
-	if (*img_data.kcmdline_extra) {
 		strcat(newbootargs, " ");
-		strcat(newbootargs, img_data.kcmdline_extra);
 	}
+
+	if (*img_data.kcmdline_extra)
+		strcat(newbootargs, img_data.kcmdline_extra);
 
 	env_set("bootargs", newbootargs);
 	free(newbootargs);
