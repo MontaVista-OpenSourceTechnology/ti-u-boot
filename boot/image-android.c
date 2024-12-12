@@ -363,6 +363,11 @@ int android_image_get_kernel(const void *hdr,
 	       kernel_addr, DIV_ROUND_UP(img_data.kernel_size, 1024));
 
 	int len = 0;
+	char *bootargs = env_get("bootargs");
+
+	if (bootargs)
+		len += strlen(bootargs) + 1; /* Extra space character needed */
+
 	if (*img_data.kcmdline) {
 		printf("Kernel command line: %s\n", img_data.kcmdline);
 		len += strlen(img_data.kcmdline) + 1; /* Extra space character needed */
@@ -372,10 +377,6 @@ int android_image_get_kernel(const void *hdr,
 		printf("Kernel extra command line: %s\n", img_data.kcmdline_extra);
 		len += strlen(img_data.kcmdline_extra);
 	}
-
-	char *bootargs = env_get("bootargs");
-	if (bootargs)
-		len += strlen(bootargs) + 1; /* Extra space character needed */
 
 	char *newbootargs = malloc(len + 1); /* +1 for the '\0' */
 	if (!newbootargs) {
