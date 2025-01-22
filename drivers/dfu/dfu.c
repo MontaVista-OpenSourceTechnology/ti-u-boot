@@ -169,10 +169,13 @@ int dfu_init_env_entities(char *interface, char *devstr)
 	dfu_reinit_needed = false;
 	dfu_alt_info_changed = false;
 
-#ifdef CONFIG_SET_DFU_ALT_INFO
-	set_dfu_alt_info(interface, devstr);
-#endif
 	str_env = env_get("dfu_alt_info");
+#ifdef CONFIG_SET_DFU_ALT_INFO
+	if (!str_env) {
+		set_dfu_alt_info(interface, devstr);
+		str_env = env_get("dfu_alt_info");
+	}
+#endif
 	if (!str_env) {
 		pr_err("\"dfu_alt_info\" env variable not defined!\n");
 		return -EINVAL;
