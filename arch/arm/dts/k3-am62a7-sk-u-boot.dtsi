@@ -183,3 +183,8 @@
 &cpsw_port1 {
 	bootph-all;
 };
+
+/* Required for USB DFU Boot */
+&usb0 {
+	bootph-all;
+};
