@@ -16,3 +16,8 @@
 &dmsc {
 	bootph-pre-ram;
 };
+
+/* Required for USB DFU Boot */
+&usb0 {
+	bootph-all;
+};
