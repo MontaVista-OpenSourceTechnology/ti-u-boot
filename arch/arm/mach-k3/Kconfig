@@ -128,6 +128,26 @@ config K3_EARLY_CONS_IDX
 	  Use this option to set the index of the serial device to be used
 	  for the early console during SPL execution.
 
+config K3_TIFS_LOAD_ADDR
+	hex "Load address of TI's Foundational Security (TIFS) firmware"
+	default 0x40000
+	help
+	  The load address for TI's Foundation Security firmware. This value is
+	  used to build the x509 certificate to tell boot ROM where to place the
+	  TIFS firmware in memory.
+
+	  Unless you know what you're doing. Do not change this value.
+
+config K3_TIFS_DATA_LOAD_ADDR
+	hex "Load address of TIFS configuration data"
+	default 0x6c000
+	help
+	  The load address for TI's Foundation Security configuration data. This
+	  value is used to build the x509 certificate to tell ROM where to place
+	  the TIFS firmware.
+
+	  Unless you know what you're doing. Do not change this value.
+
 config K3_ATF_LOAD_ADDR
 	hex "Load address of ATF image"
 	default 0x80000000 if (SOC_K3_AM625 || SOC_K3_AM62A7 || SOC_K3_AM62P5 || SOC_K3_J722S || SOC_K3_AM62L3)
@@ -138,6 +158,7 @@ config K3_ATF_LOAD_ADDR
 
 config K3_OPTEE_LOAD_ADDR
 	hex "Load address of OPTEE image"
+	default 0x80200000 if SOC_K3_AM62L3
 	default 0x9e800000
 	help
 	  The load address for the OPTEE image. This value defaults to 0x9e800000
