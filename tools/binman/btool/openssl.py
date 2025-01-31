@@ -235,10 +235,10 @@ emailAddress           = {req_dist_name_dict['emailAddress']}
     def x509_cert_rom_combined(self, cert_fname, input_fname, key_fname, sw_rev,
                   config_fname, req_dist_name_dict, load_addr, sha, total_size, num_comps,
                   sysfw_inner_cert_ext_boot_sequence_string, dm_data_ext_boot_sequence_string,
-                  imagesize_sbl, hashval_sbl, load_addr_sysfw, imagesize_sysfw,
-                  hashval_sysfw, load_addr_sysfw_data, imagesize_sysfw_data,
-                  hashval_sysfw_data, sysfw_inner_cert_ext_boot_block,
-                  dm_data_ext_boot_block, bootcore_opts):
+                  tee_ext_boot_sequence_string, imagesize_sbl, hashval_sbl, load_addr_sysfw,
+                  imagesize_sysfw, hashval_sysfw, load_addr_sysfw_data, imagesize_sysfw_data,
+                  hashval_sysfw_data, sysfw_inner_cert_ext_boot_block, dm_data_ext_boot_block,
+                  tee_ext_boot_block, bootcore_opts):
         """Create a certificate
 
         Args:
@@ -295,6 +295,7 @@ sbl=SEQUENCE:sbl
 sysfw=SEQUENCE:sysfw
 sysfw_data=SEQUENCE:sysfw_data
 {sysfw_inner_cert_ext_boot_sequence_string}
+{tee_ext_boot_sequence_string}
 {dm_data_ext_boot_sequence_string}
 
 [sbl]
@@ -331,6 +332,8 @@ coreDbgEn = INTEGER:0
 coreDbgSecEn = INTEGER:0
 
 {sysfw_inner_cert_ext_boot_block}
+
+{tee_ext_boot_block}
 
 {dm_data_ext_boot_block}
         ''', file=outf)

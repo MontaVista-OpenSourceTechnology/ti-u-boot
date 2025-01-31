@@ -80,6 +80,11 @@ class Entry_ti_secure_rom(Entry_x509_cert):
             self.dm_data = fdt_util.GetBool(self._node, 'dm-data', False)
             if self.dm_data:
                 self.load_addr_dm_data = fdt_util.GetInt(self._node, 'load-dm-data', 0x00000000)
+
+        self.tee = fdt_util.GetBool(self._node, 'content-tee', False)
+        if self.tee:
+            self.load_addr_tee = fdt_util.GetInt(self._node, 'load-tee', 0x00000000)
+
         self.req_dist_name = {'C': 'US',
                     'ST': 'TX',
                     'L': 'Dallas',
@@ -218,7 +223,32 @@ compSize = INTEGER:{imagesize_dm_data}
 shaType  = OID:{self.sha_type}
 shaValue = FORMAT:HEX,OCT:{hashval_dm_data}"""
 
-        self.total_size = self.imagesize_sbl +  self.imagesize_sysfw + self.imagesize_sysfw_data + imagesize_sysfw_inner_cert + imagesize_dm_data
+        # tee
+        self.tee_ext_boot_sequence_string = ""
+        self.tee_ext_boot_block = ""
+        imagesize_tee = 0
+        if self.tee:
+            self.content = fdt_util.GetPhandleList(self._node, 'content-tee')
+            input_data_tee = self.GetContents(required)
+
+            input_fname_tee = tools.get_output_filename('input.%s' % uniq)
+            tools.write_file(input_fname_tee, input_data_tee)
+
+            indata_tee = tools.read_file(input_fname_tee)
+            hashval_tee = hashlib.sha512(indata_tee).hexdigest()
+            imagesize_tee = len(indata_tee)
+            self.num_comps += 1
+            self.tee_ext_boot_sequence_string = "tee=SEQUENCE:tee"
+            self.tee_ext_boot_block = f"""[tee]
+compType = INTEGER:17
+bootCore = INTEGER:16
+compOpts = INTEGER:0
+destAddr = FORMAT:HEX,OCT:{self.load_addr_tee:08x}
+compSize = INTEGER:{imagesize_tee}
+shaType  = OID:{self.sha_type}
+shaValue = FORMAT:HEX,OCT:{hashval_tee}"""
+
+        self.total_size = self.imagesize_sbl +  self.imagesize_sysfw + self.imagesize_sysfw_data + imagesize_sysfw_inner_cert + imagesize_dm_data + imagesize_tee
         return super().GetCertificate(required=required, type='rom-combined')
 
     def GetCertificate(self, required):
