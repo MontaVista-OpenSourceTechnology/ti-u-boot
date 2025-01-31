@@ -628,6 +628,8 @@ static int sdhci_am654_get_otap_delay(struct udevice *dev,
 	 * value is not found
 	 */
 	for (i = MMC_LEGACY; i <= MMC_HS_400; i++) {
+		if (!td[i].otap_binding)
+			continue;
 		ret = dev_read_u32(dev, td[i].otap_binding,
 				   &plat->otap_del_sel[i]);
 		if (ret) {
