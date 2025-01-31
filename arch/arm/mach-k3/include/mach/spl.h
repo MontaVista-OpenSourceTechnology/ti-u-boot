@@ -42,4 +42,8 @@
 #include "j722s_spl.h"
 #endif
 
+#ifdef CONFIG_SOC_K3_AM62L3
+#include "am62l_spl.h"
+#endif
+
 #endif /* _ASM_ARCH_SPL_H_ */
