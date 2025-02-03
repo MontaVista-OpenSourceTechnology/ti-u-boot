@@ -16,3 +16,7 @@
 		bootph-pre-ram;
 	};
 };
+
+&bucka12 {
+	bootph-all;
+};
