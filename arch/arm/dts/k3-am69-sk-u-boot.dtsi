@@ -12,14 +12,14 @@
 #if defined(CONFIG_CPU_V7R)
 
 &binman {
-	tiboot3-am69-hs {
+	tiboot3-j784s4-hs {
 		insert-template = <&tiboot3_j784s4_hs>;
-		filename = "tiboot3-am69-hs-sk.bin";
+		filename = "tiboot3-j784s4-hs-evm.bin";
 	};
 
-	tiboot3-am69-hs-fs {
+	tiboot3-j784s4-hs-fs {
 		insert-template = <&tiboot3_j784s4_hs_fs>;
-		filename = "tiboot3-am69-hs-fs-sk.bin";
+		filename = "tiboot3-j784s4-hs-fs-evm.bin";
 		symlink = "tiboot3.bin";
 	};
 };
@@ -50,7 +50,7 @@
 		image-guid = AM69_SK_TIBOOT3_IMAGE_GUID_STR;
 
 		blob {
-			filename = "tiboot3-am69-hs-fs-sk.bin";
+			filename = "tiboot3-j784s4-hs-fs-evm.bin";
 		};
 	};
 };
