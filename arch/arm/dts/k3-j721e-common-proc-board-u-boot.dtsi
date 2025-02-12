@@ -220,3 +220,8 @@
 	assigned-clock-parents = <&wiz0_pll1_refclk>;
 	bootph-all;
 };
+
+/* Required for USB DFU Boot */
+&serdes3_usb_link {
+	bootph-all;
+};
