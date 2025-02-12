@@ -148,6 +148,11 @@
 	};
 };
 
+/* Required for USB DFU boot */
+&serdes3_usb_link {
+	bootph-all;
+};
+
 #ifdef CONFIG_TARGET_J721E_A72_EVM
 
 #define SPL_J721E_SK_DTB "spl/dts/ti/k3-j721e-sk.dtb"
