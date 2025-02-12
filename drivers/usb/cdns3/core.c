@@ -339,7 +339,7 @@ static int cdns3_probe(struct cdns3 *cdns)
 			dev_err(dev, "USB2 PHY init failed: %d\n", ret);
 			return ret;
 		}
-	} else if (ret != -ENOENT && ret != -ENODATA) {
+	} else if (ret != -ENOENT && ret != -ENODATA && ret != -ENODEV) {
 		dev_err(dev, "Couldn't get USB2 PHY:  %d\n", ret);
 		return ret;
 	}
@@ -351,7 +351,7 @@ static int cdns3_probe(struct cdns3 *cdns)
 			dev_err(dev, "USB3 PHY init failed: %d\n", ret);
 			return ret;
 		}
-	} else if (ret != -ENOENT && ret != -ENODATA) {
+	} else if (ret != -ENOENT && ret != -ENODATA && ret != -ENODEV) {
 		dev_err(dev, "Couldn't get USB3 PHY:  %d\n", ret);
 		return ret;
 	}
