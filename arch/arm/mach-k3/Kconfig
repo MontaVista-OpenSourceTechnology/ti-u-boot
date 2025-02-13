@@ -12,6 +12,12 @@ config SOC_K3_AM62A7
 
 config SOC_K3_AM62L3
 	bool "TI's K3 based AM62L3 SoC Family Support"
+	select CLK_SCMI
+	select SPL_CLK_SCMI
+	select SCMI_FIRMWARE
+	select SCMI_POWER_DOMAIN
+	select SPL_SCMI_POWER_DOMAIN
+	select SYSRESET_PSCI
 
 config SOC_K3_AM62P5
 	bool "TI's K3 based AM62P5 SoC Family Support"
