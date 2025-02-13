@@ -90,6 +90,13 @@ config SCMI_POWER_DOMAIN
 	  Enable power domain implementation based on SCMI power domain
 	  management protocol.
 
+config SPL_SCMI_POWER_DOMAIN
+	bool "Enable SCMI power domain driver in the SPL"
+	depends on SPL_POWER_DOMAIN && SCMI_FIRMWARE
+	help
+	  Enable power domain implementation based on SCMI power domain
+	  management protocol in the SPL.
+
 config TEGRA186_POWER_DOMAIN
 	bool "Enable Tegra186 BPMP-based power domain driver"
 	depends on TEGRA186_BPMP
