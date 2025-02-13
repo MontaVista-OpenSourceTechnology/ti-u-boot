@@ -589,7 +589,7 @@ struct scmi_pwd_protocol_msg_attrs_out {
 	u32 attributes;
 };
 
-#define SCMI_PWD_NAME_LENGTH_MAX 16
+#define SCMI_PWD_NAME_LENGTH_MAX 64
 
 /**
  * struct scmi_pwd_attrs_out
@@ -740,7 +740,7 @@ enum scmi_clock_message_id {
 #define SCMI_CLK_RATE_ROUND_UP		BIT(2)
 #define SCMI_CLK_RATE_ROUND_CLOSEST	BIT(3)
 
-#define SCMI_CLOCK_NAME_LENGTH_MAX 16
+#define SCMI_CLOCK_NAME_LENGTH_MAX 64
 
 /**
  * struct scmi_clk_get_nb_out - Response for SCMI_PROTOCOL_ATTRIBUTES command
