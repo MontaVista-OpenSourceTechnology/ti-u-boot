@@ -152,3 +152,13 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 }
 #endif
 
+ofnode cadence_qspi_get_subnode(struct udevice *dev)
+{
+	if (IS_ENABLED(CONFIG_SPL_BUILD) &&
+	    IS_ENABLED(CONFIG_TARGET_J784S4_R5_EVM)) {
+		if (spl_boot_device() == BOOT_DEVICE_SPINAND)
+			return ofnode_by_compatible(dev_ofnode(dev), "spi-nand");
+	}
+
+	return dev_read_first_subnode(dev);
+}
