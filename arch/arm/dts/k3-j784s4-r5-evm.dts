@@ -25,6 +25,10 @@
 	pinctrl-0 = <&wkup_gpio_pins_default>;
 };
 
+&ospi0_nand {
+	status = "okay";
+};
+
 &tps659413 {
 	esm: esm {
 		compatible = "ti,tps659413-esm";

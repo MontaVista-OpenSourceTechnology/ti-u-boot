@@ -104,5 +104,48 @@
 
 &wkup_gpio0 {
 	bootph-pre-ram;
+};
 
+&wkup_pmx0 {
+	bootph-pre-ram;
+};
+
+&fss {
+	bootph-pre-ram;
+};
+
+&mcu_fss0_ospi0_pins_default {
+	bootph-pre-ram;
+};
+
+&mcu_fss0_ospi0_1_pins_default {
+	bootph-pre-ram;
+};
+
+&ospi0 {
+	bootph-pre-ram;
+
+	ospi0_nor: flash@0 {
+		bootph-pre-ram;
+
+		partitions {
+			bootph-pre-ram;
+
+			partition@3fc0000 {
+				bootph-pre-ram;
+			};
+		};
+	};
+};
+
+&ospi0_nand {
+	bootph-pre-ram;
+};
+
+&ospi1 {
+	bootph-pre-ram;
+};
+
+&ospi1_nor {
+	bootph-pre-ram;
 };
