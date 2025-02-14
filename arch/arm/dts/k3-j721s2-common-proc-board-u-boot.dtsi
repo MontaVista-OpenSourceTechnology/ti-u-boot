@@ -101,6 +101,14 @@
 	bootph-all;
 };
 
+&wkup_gpio_pins_default {
+	bootph-all;
+};
+
+&wkup_gpio0 {
+	bootph-all;
+};
+
 &ospi0 {
 	flash@0 {
 		bootph-all;

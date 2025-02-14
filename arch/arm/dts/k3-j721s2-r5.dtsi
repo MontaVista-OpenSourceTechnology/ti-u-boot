@@ -66,6 +66,15 @@
 	};
 };
 
+&wkup_pmx2 {
+	bootph-pre-ram;
+	wkup_gpio_pins_default: wkup_gpio_pins_default {
+		pinctrl-single,pins = <
+			J784S4_WKUP_IOPAD(0x070, PIN_INPUT, 7) /* (L37) WKUP_GPIO0_6 */
+		>;
+	};
+};
+
 &sms {
 	mboxes= <&secure_proxy_mcu 8>, <&secure_proxy_mcu 6>, <&secure_proxy_mcu 5>;
 	mbox-names = "tx", "rx", "notify";
@@ -79,6 +88,11 @@
 
 &mcu_udmap {
 	ti,sci = <&dm_tifs>;
+};
+
+&wkup_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&wkup_gpio_pins_default>;
 };
 
 &ospi0 {
