@@ -109,10 +109,18 @@
 	bootph-all;
 };
 
+&mcu_fss0_ospi0_pins_default {
+	bootph-all;
+};
+
 &ospi0 {
-	flash@0 {
+	ospi0_nor: flash@0 {
 		bootph-all;
 	};
+};
+
+&ospi0_nand {
+		bootph-all;
 };
 
 &ospi1 {

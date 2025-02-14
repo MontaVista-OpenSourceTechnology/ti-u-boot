@@ -23,3 +23,8 @@
 	bootph-pre-ram;
 	vdd-supply-2 = <&bucka1234>;
 };
+
+&ospi0_nand {
+	bootph-all;
+	status = "okay";
+};
