@@ -11,6 +11,20 @@
 #include "k3-j784s4-evm-u-boot.dtsi"
 #include "k3-j784s4-r5.dtsi"
 
+&wkup_pmx2 {
+	bootph-pre-ram;
+	wkup_gpio_pins_default: wkup_gpio_pins_default {
+		pinctrl-single,pins = <
+			J784S4_WKUP_IOPAD(0x070, PIN_INPUT, 7) /* (L37) WKUP_GPIO0_6 */
+		>;
+	};
+};
+
+&wkup_gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&wkup_gpio_pins_default>;
+};
+
 &tps659413 {
 	esm: esm {
 		compatible = "ti,tps659413-esm";
