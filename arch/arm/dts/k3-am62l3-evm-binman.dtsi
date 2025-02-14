@@ -96,14 +96,13 @@
 		filename = "tispl.bin";
 
 		ti-secure-rom {
-			content = <&atf>, <&tifs_enc2>, <&tifs_data2>, <&tifs_cert2>, <&tee>, <&spl>;
+			content = <&atf>, <&tifs_enc2>, <&tifs_data2>, <&tifs_cert2>, <&spl>;
 			combined;
 			sysfw-inner-cert;
 			dm-data;
 			keyfile = "custMpk.pem";
 			sw-rev = <1>;
 			content-sbl = <&atf>;
-			content-tee = <&tee>;
 			content-sysfw = <&tifs_enc2>;
 			content-sysfw-data = <&tifs_data2>;
 			content-sysfw-inner-cert = <&tifs_cert2>;
@@ -112,7 +111,6 @@
 			load-sysfw = <CONFIG_K3_TIFS_LOAD_ADDR>;
 			load-sysfw-data = <CONFIG_K3_TIFS_DATA_LOAD_ADDR>;
 			load-dm-data = <CONFIG_SPL_TEXT_BASE>;
-			load-tee = <CONFIG_K3_OPTEE_LOAD_ADDR>;
 		};
 
 		atf: atf-bl31 {
@@ -131,9 +129,6 @@
 		tifs_cert2: tifs-cert2.bin {
 			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-fs-cert.bin";
 			type = "blob-ext";
-		};
-
-		tee: tee-os {
 		};
 
 		spl: u-boot-spl {
