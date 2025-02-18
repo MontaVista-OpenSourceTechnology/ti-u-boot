@@ -150,6 +150,11 @@
 	bootph-pre-ram;
 };
 
+/* Required for USB DFU boot */
+&serdes0_usb_link {
+	bootph-all;
+};
+
 /*
  * Since OTG is not supported with a Type-C USB interface, it is not possible
  * to determine the role at runtime. Therefore, to support USB DFU boot, it
