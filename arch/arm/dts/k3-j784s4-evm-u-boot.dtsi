@@ -149,3 +149,12 @@
 &ospi1_nor {
 	bootph-pre-ram;
 };
+
+/*
+ * Since OTG is not supported with a Type-C USB interface, it is not possible
+ * to determine the role at runtime. Therefore, to support USB DFU boot, it
+ * is necessary to set 'dr_mode' to "peripheral".
+ */
+&usb0 {
+	dr_mode = "peripheral";
+};
