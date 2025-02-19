@@ -27,6 +27,21 @@
 	filename = "ti-sysfw/ti-fs-firmware-j742s2-hs-fs-cert.bin";
 };
 
+&binman {
+	tiboot3-j742s2-hs {
+		insert-template = <&tiboot3_j784s4_hs>;
+		filename = "tiboot3-j742s2-hs-evm.bin";
+	};
+};
+
+&ti_fs_enc {
+	filename = "ti-sysfw/ti-fs-firmware-j784s4-hs-enc.bin";
+};
+
+&sysfw_inner_cert {
+	filename = "ti-sysfw/ti-fs-firmware-j784s4-hs-cert.bin";
+};
+
 #else // CONFIG_ARM64
 
 &binman {
