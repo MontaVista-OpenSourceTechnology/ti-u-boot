@@ -1350,6 +1350,7 @@ static int udma_setup_resources(struct udma_dev *ud)
 	struct ti_sci_resource_desc *rm_desc;
 	struct ti_sci_resource *rm_res;
 	struct udma_tisci_rm *tisci_rm = &ud->tisci_rm;
+	size_t desc_size;
 
 	ud->tchan_map = devm_kmalloc_array(dev, BITS_TO_LONGS(ud->tchan_cnt),
 					   sizeof(unsigned long), GFP_KERNEL);
@@ -1367,9 +1368,11 @@ static int udma_setup_resources(struct udma_dev *ud)
 	ud->rflows = devm_kcalloc(dev, ud->rflow_cnt, sizeof(*ud->rflows),
 				  GFP_KERNEL);
 
+	desc_size = cppi5_trdesc_calc_size(K3_UDMA_MAX_TR, sizeof(struct cppi5_tr_type15_t));
+	ud->bc_desc = devm_kzalloc(dev, ALIGN(desc_size, ARCH_DMA_MINALIGN), GFP_KERNEL);
 	if (!ud->tchan_map || !ud->rchan_map || !ud->rflow_map ||
 	    !ud->rflow_map_reserved || !ud->tchans || !ud->rchans ||
-	    !ud->rflows)
+	    !ud->rflows || !ud->bc_desc)
 		return -ENOMEM;
 
 	/*
