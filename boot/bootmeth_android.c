@@ -443,20 +443,7 @@ static int run_avb_verification(struct bootflow *bflow)
 	char *extra_args;
 	char slot_suffix[3] = "";
 	bool unlocked = false;
-	ulong force_avb;
 	int ret;
-
-	force_avb = env_get_ulong("force_avb", 10, 0);
-	if (!force_avb) {
-		/* When AVB is not requested, pass ORANGE state  */
-		ret = bootflow_cmdline_set_arg(bflow,
-					"androidboot.verifiedbootstate",
-					"orange", false);
-		if (ret < 0)
-			return log_msg_ret("avb cmdline", ret);
-
-		return 0;
-	}
 
 	avb_ops = avb_ops_alloc(desc->devnum);
 	if (!avb_ops)
