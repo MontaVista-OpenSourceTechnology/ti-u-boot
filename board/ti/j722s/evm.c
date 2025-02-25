@@ -34,7 +34,7 @@ static void __maybe_unused detect_enable_spinand(void *blob)
 {
 	if (IS_ENABLED(CONFIG_DM_GPIO) && IS_ENABLED(CONFIG_OF_LIBFDT)) {
 		struct gpio_desc desc = {0};
-		char *ospi_mux_sel_gpio = "1";
+		char *ospi_mux_sel_gpio = "gpio@23_1";
 		int nand_offset, nor_offset;
 
 		if (dm_gpio_lookup_name(ospi_mux_sel_gpio, &desc))
