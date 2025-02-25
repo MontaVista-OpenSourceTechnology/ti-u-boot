@@ -8,6 +8,7 @@
  */
 
 #define pr_fmt(fmt)	"spi-nand: " fmt
+#define PHY_PATTERN_SIZE	0X80
 
 #ifndef __UBOOT__
 #include <linux/device.h>
@@ -28,6 +29,7 @@
 #include <ubi_uboot.h>
 #include <dm/device_compat.h>
 #include <dm/devres.h>
+#include <dm/read.h>
 #include <linux/bitops.h>
 #include <linux/bug.h>
 #include <linux/mtd/spinand.h>
@@ -1168,6 +1170,30 @@ static void spinand_cleanup(struct spinand_device *spinand)
 	kfree(spinand->scratchbuf);
 }
 
+static int spinand_ofdata_phy_pattern(struct udevice *dev)
+{
+	ofnode partition_node, sub_partition_node;
+	const char *label;
+	u32 start;
+
+	partition_node = dev_read_first_subnode(dev);
+	sub_partition_node = ofnode_first_subnode(partition_node);
+
+	while (ofnode_valid(sub_partition_node)) {
+		label = ofnode_read_string(sub_partition_node, "label");
+		if (label && strcmp(label, "ospi_nand.phypattern") == 0) {
+			if (!ofnode_read_u32_array(sub_partition_node, "reg", &start, 1))
+				return start;
+
+			break;
+		}
+
+		sub_partition_node = ofnode_next_subnode(sub_partition_node);
+	}
+
+	return -ENOENT;
+}
+
 static int spinand_bind(struct udevice *dev)
 {
 	if (blk_enabled()) {
@@ -1194,7 +1220,12 @@ static int spinand_probe(struct udevice *dev)
 	struct mtd_info *mtd = dev_get_uclass_priv(dev);
 	struct nand_device *nand = spinand_to_nand(spinand);
 	struct spinand_plat *plat = dev_get_plat(dev);
-	int ret;
+	struct nand_pos page_pos;
+	struct nand_page_io_req page_req;
+	struct spi_mem_op read_page_op;
+	int ret, pageoffs;
+	u32 start;
+	u8 status;
 
 #ifndef __UBOOT__
 	spinand = devm_kzalloc(&mem->spi->dev, sizeof(*spinand),
@@ -1234,6 +1265,25 @@ static int spinand_probe(struct udevice *dev)
 		goto err_spinand_cleanup;
 
 	plat->mtd = mtd;
+
+	start = spinand_ofdata_phy_pattern(dev);
+
+	pageoffs = nanddev_offs_to_pos(nand, start, &page_pos);
+	page_req.pos = page_pos;
+
+	read_page_op = *spinand->op_templates.read_cache;
+	read_page_op.addr.val = pageoffs;
+	read_page_op.data.nbytes = PHY_PATTERN_SIZE;
+
+	ret = spinand_load_page_op(spinand, &page_req);
+	if (ret)
+		goto err_spinand_cleanup;
+
+	ret = spinand_wait(spinand, &status);
+	if (ret < 0)
+		goto err_spinand_cleanup;
+
+	spi_mem_do_calibration(spinand->slave, &read_page_op);
 
 	return 0;
 
