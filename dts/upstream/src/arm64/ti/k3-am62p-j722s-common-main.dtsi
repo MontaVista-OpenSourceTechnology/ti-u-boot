@@ -690,6 +690,7 @@
 			cdns,fifo-depth = <256>;
 			cdns,fifo-width = <4>;
 			cdns,trigger-address = <0x0>;
+			cdns,phase-detect-selector = <0>;
 			clocks = <&k3_clks 75 7>;
 			assigned-clocks = <&k3_clks 75 7>;
 			assigned-clock-parents = <&k3_clks 75 8>;
@@ -847,33 +848,6 @@
 		power-domains = <&k3_pds 53 TI_SCI_PD_EXCLUSIVE>;
 		clocks = <&k3_clks 53 0>;
 		clock-names = "fck";
-		status = "disabled";
-	};
-
-	eqep0: counter@23200000 {
-		compatible = "ti,am62-eqep";
-		reg = <0x00 0x23200000 0x00 0x100>;
-		power-domains = <&k3_pds 59 TI_SCI_PD_EXCLUSIVE>;
-		clocks = <&k3_clks 59 0>;
-		interrupts = <GIC_SPI 116 IRQ_TYPE_EDGE_RISING>;
-		status = "disabled";
-	};
-
-	eqep1: counter@23210000 {
-		compatible = "ti,am62-eqep";
-		reg = <0x00 0x23210000 0x00 0x100>;
-		power-domains = <&k3_pds 60 TI_SCI_PD_EXCLUSIVE>;
-		clocks = <&k3_clks 60 0>;
-		interrupts = <GIC_SPI 117 IRQ_TYPE_EDGE_RISING>;
-		status = "disabled";
-	};
-
-	eqep2: counter@23220000 {
-		compatible = "ti,am62-eqep";
-		reg = <0x00 0x23220000 0x00 0x100>;
-		power-domains = <&k3_pds 62 TI_SCI_PD_EXCLUSIVE>;
-		clocks = <&k3_clks 62 0>;
-		interrupts = <GIC_SPI 118 IRQ_TYPE_EDGE_RISING>;
 		status = "disabled";
 	};
 
@@ -1075,8 +1049,10 @@
 		ranges;
 		#address-cells = <2>;
 		#size-cells = <2>;
-		dmas = <&main_bcdma_csi 0 0x5000 0>;
-		dma-names = "rx0";
+		dmas = <&main_bcdma_csi 0 0x5000 0>, <&main_bcdma_csi 0 0x5001 0>,
+		       <&main_bcdma_csi 0 0x5002 0>, <&main_bcdma_csi 0 0x5003 0>,
+		       <&main_bcdma_csi 0 0x5004 0>, <&main_bcdma_csi 0 0x5005 0>;
+		dma-names = "rx0", "rx1", "rx2", "rx3", "rx4", "rx5";
 		power-domains = <&k3_pds 182 TI_SCI_PD_EXCLUSIVE>;
 		status = "disabled";
 
