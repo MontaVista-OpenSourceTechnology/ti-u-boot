@@ -174,6 +174,13 @@
 #define CQSPI_REG_PHY_CONFIG_RESYNC		BIT(31)
 #define CQSPI_REG_PHY_CONFIG_RESET_FLD_MASK     0x40000000
 
+#define CQSPI_REG_PHY_DLL_MASTER		0xB8
+#define CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LEN	0x7
+#define CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LSB	20
+#define CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_3	0x2
+#define CQSPI_REG_PHY_DLL_MASTER_BYPASS		BIT(23)
+#define CQSPI_REG_PHY_DLL_MASTER_CYCLE		BIT(24)
+
 #define CQSPI_DMA_DST_ADDR_REG                  0x1800
 #define CQSPI_DMA_DST_SIZE_REG                  0x1804
 #define CQSPI_DMA_DST_STS_REG                   0x1808
@@ -211,6 +218,7 @@
 #define CQSPI_PHY_MAX_RD		4
 #define CQSPI_PHY_MAX_RX		63
 #define CQSPI_PHY_MAX_TX		63
+#define CQSPI_PHY_MAX_DELAY		127
 #define CQSPI_PHY_LOW_RX_BOUND		15
 #define CQSPI_PHY_HIGH_RX_BOUND		25
 #define CQSPI_PHY_LOW_TX_BOUND		32
@@ -283,6 +291,7 @@ struct cadence_spi_priv {
 	unsigned int	previous_hz;
 	int		phy_read_delay;
 	bool		use_phy;
+	bool		use_dqs;
 	u32		wr_delay;
 	int		read_delay;
 	bool		has_phy;
@@ -356,7 +365,9 @@ void cadence_qspi_apb_delay(void *reg_base,
 	unsigned int tchsh_ns, unsigned int tslch_ns);
 void cadence_qspi_apb_enter_xip(void *reg_base, char xip_dummy);
 void cadence_qspi_apb_readdata_capture(void *reg_base,
-	unsigned int bypass, unsigned int delay);
+	unsigned int bypass, const bool dqs, unsigned int delay);
+void cadence_qspi_apb_phy_pre_config_sdr(struct cadence_spi_priv *priv);
+void cadence_qspi_apb_phy_post_config_sdr(struct cadence_spi_priv *priv);
 unsigned int cm_get_qspi_controller_clk_hz(void);
 int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 			      const struct spi_mem_op *op);

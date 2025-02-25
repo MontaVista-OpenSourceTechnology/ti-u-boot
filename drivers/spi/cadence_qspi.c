@@ -126,6 +126,26 @@ static int cadence_spi_find_rx_low(struct cadence_spi_priv *priv,
 	return -ENOENT;
 }
 
+static int cadence_spi_find_rx_low_sdr(struct cadence_spi_priv *priv,
+				       struct spi_slave *spi,
+				       struct phy_setting *phy)
+{
+	int ret;
+
+	phy->rx = 0;
+	do {
+		cadence_spi_phy_apply_setting(priv, phy);
+		ret = cadence_spi_phy_check_pattern(priv, spi);
+		if (!ret)
+			return 0;
+
+		phy->rx++;
+	} while (phy->rx < CQSPI_PHY_MAX_DELAY - 1);
+
+	debug("Unable to find RX low\n");
+	return -ENOENT;
+}
+
 static int cadence_spi_find_rx_high(struct cadence_spi_priv *priv,
 				    struct spi_slave *spi,
 				    struct phy_setting *phy)
@@ -145,6 +165,27 @@ static int cadence_spi_find_rx_high(struct cadence_spi_priv *priv,
 
 		phy->read_delay++;
 	} while (phy->read_delay <= CQSPI_PHY_MAX_RD);
+
+	debug("Unable to find RX high\n");
+	return -ENOENT;
+}
+
+static int cadence_spi_find_rx_high_sdr(struct cadence_spi_priv *priv,
+					struct spi_slave *spi,
+					struct phy_setting *phy,
+					u8 lowerbound)
+{
+	int ret;
+
+	phy->rx = CQSPI_PHY_MAX_DELAY;
+	do {
+		cadence_spi_phy_apply_setting(priv, phy);
+		ret = cadence_spi_phy_check_pattern(priv, spi);
+		if (!ret)
+			return 0;
+
+		phy->rx--;
+	} while (phy->rx > lowerbound);
 
 	debug("Unable to find RX high\n");
 	return -ENOENT;
@@ -571,6 +612,108 @@ out:
 	return ret;
 }
 
+static void cadence_spi_phy_reset_setting(struct phy_setting *phy)
+{
+	phy->rx = 0;
+	phy->tx = 127;
+	phy->read_delay = 0;
+}
+
+static int cadence_spi_phy_calibrate_sdr(struct cadence_spi_priv *priv,
+					 struct spi_slave *spi)
+{
+	struct udevice *bus = spi->dev->parent;
+	struct phy_setting rxlow, rxhigh, first, second, final;
+	char window1 = 0;
+	char window2 = 0;
+	int ret;
+
+	priv->use_phy = true;
+	cadence_spi_phy_reset_setting(&rxlow);
+	cadence_spi_phy_reset_setting(&rxhigh);
+	cadence_spi_phy_reset_setting(&first);
+
+	do {
+		ret = cadence_spi_find_rx_low_sdr(priv, spi, &rxlow);
+
+		if (ret)
+			rxlow.read_delay++;
+	} while (ret && rxlow.read_delay <= CQSPI_PHY_MAX_RD);
+
+	rxhigh.read_delay = rxlow.read_delay;
+	ret = cadence_spi_find_rx_high_sdr(priv, spi, &rxhigh, rxlow.rx);
+	if (ret)
+		goto out;
+
+	first.read_delay = rxlow.read_delay;
+	window1 = rxhigh.rx - rxlow.rx;
+	first.rx = rxlow.rx + (window1 / 2);
+
+	cadence_spi_phy_apply_setting(priv, &first);
+	dev_dbg(bus, "First tuning point: RX: %d TX: %d RD: %d\n", first.rx,
+		first.tx, first.read_delay);
+
+	ret = cadence_spi_phy_check_pattern(priv, spi);
+	if (ret || first.read_delay > CQSPI_PHY_MAX_RD)
+		goto out;
+
+	cadence_spi_phy_reset_setting(&rxlow);
+	cadence_spi_phy_reset_setting(&rxhigh);
+	cadence_spi_phy_reset_setting(&second);
+
+	rxlow.read_delay = first.read_delay + 1;
+	if (rxlow.read_delay > CQSPI_PHY_MAX_RD)
+		goto compare;
+
+	ret = cadence_spi_find_rx_low_sdr(priv, spi, &rxlow);
+
+	if (ret)
+		goto compare;
+
+	rxhigh.read_delay = rxlow.read_delay;
+	ret = cadence_spi_find_rx_high_sdr(priv, spi, &rxhigh, rxlow.rx);
+	if (ret)
+		goto compare;
+
+	window2 = rxhigh.rx - rxlow.rx;
+	second.rx = rxlow.rx + (window2 / 2);
+	second.read_delay = rxlow.read_delay;
+
+	cadence_spi_phy_apply_setting(priv, &second);
+	dev_dbg(bus, "Second tuning point: RX: %d TX: %d RD: %d\n", second.rx,
+		second.tx, second.read_delay);
+
+	ret = cadence_spi_phy_check_pattern(priv, spi);
+	if (ret || second.read_delay > CQSPI_PHY_MAX_RD)
+		window2 = 0;
+
+compare:
+	cadence_spi_phy_reset_setting(&final);
+	if (window2 > window1) {
+		final.rx = second.rx;
+		final.read_delay = second.read_delay;
+	} else {
+		final.rx = first.rx;
+		final.read_delay = first.read_delay;
+	}
+
+	cadence_spi_phy_apply_setting(priv, &final);
+	ret = cadence_spi_phy_check_pattern(priv, spi);
+
+	if (ret) {
+		ret = -EINVAL;
+		goto out;
+	}
+	dev_dbg(bus, "Final tuning point: RX: %d TX: %d RD: %d\n", final.rx,
+		final.tx, final.read_delay);
+
+out:
+	if (ret)
+		priv->use_phy = false;
+
+	return ret;
+}
+
 static int cadence_spi_write_speed(struct udevice *bus, uint hz)
 {
 	struct cadence_spi_priv *priv = dev_get_priv(bus);
@@ -615,7 +758,7 @@ static int spi_calibration(struct udevice *bus, uint hz)
 	cadence_spi_write_speed(bus, 1000000);
 
 	/* configure the read data capture delay register to 0 */
-	cadence_qspi_apb_readdata_capture(base, 1, 0);
+	cadence_qspi_apb_readdata_capture(base, 1, true, 0);
 
 	/* Enable QSPI */
 	cadence_qspi_apb_controller_enable(base);
@@ -634,7 +777,7 @@ static int spi_calibration(struct udevice *bus, uint hz)
 		cadence_qspi_apb_controller_disable(base);
 
 		/* reconfigure the read data capture delay register */
-		cadence_qspi_apb_readdata_capture(base, 1, i);
+		cadence_qspi_apb_readdata_capture(base, 1, true, i);
 
 		/* Enable back QSPI */
 		cadence_qspi_apb_controller_enable(base);
@@ -669,7 +812,7 @@ static int spi_calibration(struct udevice *bus, uint hz)
 	cadence_qspi_apb_controller_disable(base);
 
 	/* configure the final value for read data capture delay register */
-	cadence_qspi_apb_readdata_capture(base, 1, (range_hi + range_lo) / 2);
+	cadence_qspi_apb_readdata_capture(base, 1, true, (range_hi + range_lo) / 2);
 	debug("SF: Read data capture delay calibrated to %i (%i - %i)\n",
 	      (range_hi + range_lo) / 2, range_lo, range_hi);
 
@@ -696,7 +839,7 @@ static int cadence_spi_set_speed(struct udevice *bus, uint hz)
 	 */
 	if (priv->read_delay >= 0) {
 		cadence_spi_write_speed(bus, hz);
-		cadence_qspi_apb_readdata_capture(priv->regbase, 1,
+		cadence_qspi_apb_readdata_capture(priv->regbase, 1, true,
 						  priv->read_delay);
 	} else if (priv->previous_hz != hz ||
 		   priv->qspi_calibrated_hz != hz ||
@@ -926,11 +1069,27 @@ static void cadence_spi_mem_do_calibration(struct spi_slave *spi,
 		return;
 	}
 
-	ret = cadence_spi_phy_calibrate(priv, spi);
-	if (ret)
-		dev_warn(bus,
-			 "PHY calibration failed: %d. Falling back to slower clock speeds.\n",
-			 ret);
+	if (op->cmd.dtr || op->addr.dtr || op->dummy.dtr || op->data.dtr) {
+		priv->use_dqs = true;
+
+		ret = cadence_spi_phy_calibrate(priv, spi);
+		if (ret)
+			dev_warn(bus,
+				 "PHY calibration failed: %d. Falling back to slower clock speeds.\n",
+				 ret);
+	} else {
+		priv->use_dqs = false;
+
+		cadence_qspi_apb_phy_pre_config_sdr(priv);
+
+		ret = cadence_spi_phy_calibrate_sdr(priv, spi);
+		if (ret)
+			dev_warn(bus,
+				 "PHY calibration failed: %d. Falling back to slower clock speeds.\n",
+				 ret);
+
+		cadence_qspi_apb_phy_post_config_sdr(priv);
+	}
 }
 
 static int cadence_spi_ofdata_phy_pattern(ofnode flash_node)
@@ -955,7 +1114,9 @@ static int cadence_spi_ofdata_phy_pattern(ofnode flash_node)
 			if (!ofnode_read_u32_array(subnode, "reg", &start, 1))
 				return start;
 			break;
-		}
+		} else if (label && strcmp(label, "ospi_nand.phypattern") == 0)
+			return 0;
+
 		subnode = ofnode_next_subnode(subnode);
 	}
 

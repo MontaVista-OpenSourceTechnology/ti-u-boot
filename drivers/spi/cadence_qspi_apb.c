@@ -121,17 +121,26 @@ static bool cadence_qspi_apb_use_phy(struct cadence_spi_priv *priv,
 	if (op->data.nbytes < 16)
 		return false;
 
-	/* PHY is only tuned for 8D-8D-8D. */
-	if (!priv->dtr)
-		return false;
-	if (op->cmd.buswidth != 8)
-		return false;
-	if (op->addr.nbytes && op->addr.buswidth != 8)
-		return false;
-	if (op->dummy.nbytes && op->dummy.buswidth != 8)
-		return false;
-	if (op->data.nbytes && op->data.buswidth != 8)
-		return false;
+	if (op->cmd.dtr || op->addr.dtr || op->dummy.dtr || op->data.dtr) {
+		/* PHY is only tuned for 8D-8D-8D. */
+		if (!priv->dtr)
+			return false;
+		if (op->cmd.buswidth != 8)
+			return false;
+		if (op->addr.nbytes && op->addr.buswidth != 8)
+			return false;
+		if (op->dummy.nbytes && op->dummy.buswidth != 8)
+			return false;
+		if (op->data.nbytes && op->data.buswidth != 8)
+			return false;
+	} else {
+		if (op->addr.nbytes && op->addr.buswidth < 1)
+			return false;
+		if (op->dummy.nbytes && op->dummy.buswidth < 1)
+			return false;
+		if (op->data.nbytes && op->data.buswidth < 1)
+			return false;
+	}
 
 	return true;
 }
@@ -229,7 +238,9 @@ static unsigned int cadence_qspi_wait_idle(void *reg_base)
 }
 
 void cadence_qspi_apb_readdata_capture(void *reg_base,
-				unsigned int bypass, unsigned int delay)
+				       unsigned int bypass,
+				       const bool dqs,
+				       unsigned int delay)
 {
 	unsigned int reg;
 	cadence_qspi_apb_controller_disable(reg_base);
@@ -247,7 +258,10 @@ void cadence_qspi_apb_readdata_capture(void *reg_base,
 	reg |= (delay & CQSPI_REG_RD_DATA_CAPTURE_DELAY_MASK)
 		<< CQSPI_REG_RD_DATA_CAPTURE_DELAY_LSB;
 
-	reg |= CQSPI_REG_READCAPTURE_DQS_ENABLE;
+	if (dqs)
+		reg |= CQSPI_REG_READCAPTURE_DQS_ENABLE;
+	else
+		reg &= ~(CQSPI_REG_READCAPTURE_DQS_ENABLE);
 
 	writel(reg, reg_base + CQSPI_REG_RD_DATA_CAPTURE);
 
@@ -263,6 +277,7 @@ static void cadence_qspi_apb_phy_enable(struct cadence_spi_priv *priv,
 
 	if (enable) {
 		cadence_qspi_apb_readdata_capture(priv->regbase, 1,
+						  priv->use_dqs,
 						  priv->phy_read_delay);
 
 		reg = readl(reg_base + CQSPI_REG_CONFIG);
@@ -282,7 +297,7 @@ static void cadence_qspi_apb_phy_enable(struct cadence_spi_priv *priv,
 		       << CQSPI_REG_RD_INSTR_DUMMY_LSB;
 		writel(reg, reg_base + CQSPI_REG_RD_INSTR);
 	} else {
-		cadence_qspi_apb_readdata_capture(priv->regbase, 1,
+		cadence_qspi_apb_readdata_capture(priv->regbase, 1, false,
 						  priv->read_delay);
 
 		reg = readl(reg_base + CQSPI_REG_CONFIG);
@@ -304,6 +319,68 @@ static void cadence_qspi_apb_phy_enable(struct cadence_spi_priv *priv,
 	}
 
 	cadence_qspi_wait_idle(reg_base);
+}
+
+void cadence_qspi_apb_phy_pre_config_sdr(struct cadence_spi_priv *priv)
+{
+	void *reg_base = priv->regbase;
+	unsigned int reg;
+	u8 dummy;
+
+	cadence_qspi_apb_readdata_capture(reg_base, 1,
+					  false, priv->phy_read_delay);
+
+	reg = readl(reg_base + CQSPI_REG_CONFIG);
+	reg &= ~(CQSPI_REG_CONFIG_PHY_ENABLE_MASK |
+		 CQSPI_REG_CONFIG_PHY_PIPELINE);
+	reg |= CQSPI_REG_CONFIG_PHY_ENABLE_MASK;
+	writel(reg, reg_base + CQSPI_REG_CONFIG);
+
+	reg = readl(reg_base + CQSPI_REG_RD_INSTR);
+	dummy = (reg >> CQSPI_REG_RD_INSTR_DUMMY_LSB) &
+		CQSPI_REG_RD_INSTR_DUMMY_MASK;
+	dummy--;
+	reg &= ~(CQSPI_REG_RD_INSTR_DUMMY_MASK
+		 << CQSPI_REG_RD_INSTR_DUMMY_LSB);
+
+	reg |= (dummy & CQSPI_REG_RD_INSTR_DUMMY_MASK)
+	       << CQSPI_REG_RD_INSTR_DUMMY_LSB;
+	writel(reg, reg_base + CQSPI_REG_RD_INSTR);
+
+	reg = readl(reg_base + CQSPI_REG_PHY_DLL_MASTER);
+	reg &= ~((CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LEN
+		  << CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LSB) |
+		 CQSPI_REG_PHY_DLL_MASTER_BYPASS |
+		 CQSPI_REG_PHY_DLL_MASTER_CYCLE);
+	reg |= ((CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_3
+		 << CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LSB) |
+		CQSPI_REG_PHY_DLL_MASTER_CYCLE);
+
+	writel(reg, reg_base + CQSPI_REG_PHY_DLL_MASTER);
+}
+
+void cadence_qspi_apb_phy_post_config_sdr(struct cadence_spi_priv *priv)
+{
+	void *reg_base = priv->regbase;
+	unsigned int reg;
+	u8 dummy;
+
+	reg = readl(reg_base + CQSPI_REG_CONFIG);
+	reg &= ~(CQSPI_REG_CONFIG_PHY_ENABLE_MASK |
+		 CQSPI_REG_CONFIG_PHY_PIPELINE);
+	reg &= ~(CQSPI_REG_CONFIG_PHY_ENABLE_MASK);
+	writel(reg, reg_base + CQSPI_REG_CONFIG);
+
+	reg = readl(reg_base + CQSPI_REG_RD_INSTR);
+	dummy = (reg >> CQSPI_REG_RD_INSTR_DUMMY_LSB) &
+		CQSPI_REG_RD_INSTR_DUMMY_MASK;
+	dummy++;
+	reg &= ~(CQSPI_REG_RD_INSTR_DUMMY_MASK
+		 << CQSPI_REG_RD_INSTR_DUMMY_LSB);
+
+	reg |= (dummy & CQSPI_REG_RD_INSTR_DUMMY_MASK)
+	       << CQSPI_REG_RD_INSTR_DUMMY_LSB;
+	writel(reg, reg_base + CQSPI_REG_RD_INSTR);
 }
 
 void cadence_qspi_apb_config_baudrate_div(void *reg_base,
