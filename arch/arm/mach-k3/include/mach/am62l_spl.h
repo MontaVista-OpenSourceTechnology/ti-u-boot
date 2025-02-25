@@ -23,6 +23,7 @@
 #define BOOT_DEVICE_NOBOOT		0x0F
 
 /* U-Boot used aliases */
+#define BOOT_DEVICE_SPINAND		0x10
 #define BOOT_DEVICE_MMC2		BOOT_DEVICE_MMC
 #define BOOT_DEVICE_MMC1		BOOT_DEVICE_EMMC
 /* Invalid Choices for the AM62Lx */
