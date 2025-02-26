@@ -1058,7 +1058,7 @@ struct k3_nav_ringacc *k3_ringacc_dmarings_init(struct udevice *dev,
 		base_cfg = dev_remap_addr_name(dev, "cfg");
 		pr_debug("cfg %p\n", base_cfg);
 		if (!base_cfg)
-			return ERR_PTR(-EINVAL);
+			base_cfg = base_rt;
 	}
 
 	ringacc->rings = devm_kzalloc(dev,
@@ -1075,10 +1075,14 @@ struct k3_nav_ringacc *k3_ringacc_dmarings_init(struct udevice *dev,
 	for (i = 0; i < ringacc->num_rings; i++) {
 		struct k3_nav_ring *ring = &ringacc->rings[i];
 
-		ring->cfg = base_cfg + KNAV_RINGACC_CFG_REGS_STEP * i;
 		ring->rt = base_rt + K3_DMARING_RING_RT_REGS_STEP * i;
 		ring->parent = ringacc;
 		ring->ring_id = i;
+
+		if (base_cfg == base_rt)
+			ring->cfg = base_rt + K3_DMARING_RING_RT_REGS_STEP * i;
+		else
+			ring->cfg = base_cfg + KNAV_RINGACC_CFG_REGS_STEP * i;
 
 		ring = &ringacc->rings[ringacc->num_rings + i];
 		ring->rt = base_rt + K3_DMARING_RING_RT_REGS_STEP * i +
