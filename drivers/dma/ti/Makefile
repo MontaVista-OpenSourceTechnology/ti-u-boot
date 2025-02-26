@@ -12,3 +12,4 @@ k3-psil-data-$(CONFIG_SOC_K3_AM62A7) += k3-psil-am62a.o
 k3-psil-data-$(CONFIG_SOC_K3_J784S4) += k3-psil-j784s4.o
 k3-psil-data-$(CONFIG_SOC_K3_AM62P5) += k3-psil-am62p.o
 k3-psil-data-$(CONFIG_SOC_K3_J722S) += k3-psil-am62p.o
+k3-psil-data-$(CONFIG_SOC_K3_AM62L3) += k3-psil-am62l.o
