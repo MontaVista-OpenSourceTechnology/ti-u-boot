@@ -57,6 +57,14 @@
 	bootph-all;
 };
 
+&ddr_pmctrl {
+	bootph-pre-ram;
+};
+
+&canuart_wake {
+	bootph-pre-ram;
+};
+
 &main_pmx0 {
 	bootph-all;
 };

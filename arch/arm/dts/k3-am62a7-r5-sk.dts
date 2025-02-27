@@ -90,3 +90,8 @@
 	status = "okay";
 	bootph-pre-ram;
 };
+
+&memorycontroller {
+	ti,canuart-wake = <&canuart_wake>;
+	ti,ddr-pmctrl = <&ddr_pmctrl>;
+};

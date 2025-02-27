@@ -21,3 +21,11 @@
 &usb0 {
 	bootph-all;
 };
+
+&ddr_pmctrl {
+	bootph-pre-ram;
+};
+
+&canuart_wake {
+	bootph-pre-ram;
+};
