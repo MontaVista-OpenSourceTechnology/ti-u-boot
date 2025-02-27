@@ -15,6 +15,14 @@
 	memory@80000000 {
 		bootph-all;
 	};
+
+	reserved-memory {
+		bootph-pre-ram;
+	};
+};
+
+&wkup_r5fss0_core0_memory_region {
+	bootph-pre-ram;
 };
 
 &main_timer0 {
@@ -79,6 +87,14 @@
 
 &cbass_mcu {
 	bootph-all;
+};
+
+&wkup_r5fss0 {
+	bootph-pre-ram;
+};
+
+&wkup_r5fss0_core0 {
+	bootph-pre-ram;
 };
 
 &cbass_wakeup {
