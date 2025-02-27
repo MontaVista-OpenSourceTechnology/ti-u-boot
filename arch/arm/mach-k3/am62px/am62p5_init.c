@@ -188,7 +188,17 @@ void board_init_f(ulong dummy)
 
 	spl_enable_cache();
 
+	if (wkup_ctrl_is_lpm_exit()) {
+		u64 meta_data_addr;
+
+		ret = wkup_r5f_am62_lpm_meta_data_addr(&meta_data_addr);
+		if (ret)
+			panic("Failed to get LPM meta data address %d\n", ret);
+		lpm_resume_from_ddr(meta_data_addr);
+	}
+
 	setup_qos();
+
 	debug("am62px_init: %s done\n", __func__);
 }
 
