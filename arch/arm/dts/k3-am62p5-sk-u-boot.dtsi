@@ -49,3 +49,35 @@
 &wkup_r5fss0_core0 {
 	bootph-pre-ram;
 };
+
+&cpsw_mac_syscon {
+	bootph-all;
+};
+
+&cpsw_port1 {
+	bootph-all;
+};
+
+&main_pktdma {
+	bootph-all;
+};
+
+&main_rgmii1_pins_default {
+	bootph-all;
+};
+
+&main_mdio1_pins_default {
+	bootph-all;
+};
+
+&cpsw3g_phy0 {
+	bootph-all;
+};
+
+&cpsw3g_mdio {
+	bootph-all;
+};
+
+&phy_gmii_sel {
+	bootph-all;
+};
