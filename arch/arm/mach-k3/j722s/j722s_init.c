@@ -180,6 +180,7 @@ void board_init_f(ulong dummy)
 
 	k3_spl_init();
 	k3_mem_init();
+	spl_enable_cache();
 	setup_qos();
 
 	if (IS_ENABLED(CONFIG_ESM_K3)) {
