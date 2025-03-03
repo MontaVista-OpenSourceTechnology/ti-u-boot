@@ -41,6 +41,34 @@
 	bootph-all;
 };
 
+&cpsw_mac_syscon {
+	bootph-all;
+};
+
+&cpsw_port1 {
+	bootph-all;
+};
+
+&mcu_cpsw {
+	bootph-all;
+};
+
+&mcu_cpsw_pins_default {
+	bootph-all;
+};
+
+&mcu_mdio_pins_default {
+	bootph-all;
+};
+
+&phy0 {
+	bootph-all;
+};
+
+&phy_gmii_sel {
+	bootph-all;
+};
+
 &secure_proxy_main {
 	bootph-all;
 };
