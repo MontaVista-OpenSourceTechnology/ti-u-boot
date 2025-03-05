@@ -81,3 +81,7 @@
 &main_uart1 {
 	status = "okay";
 };
+
+&main_pktdma {
+	ti,sci = <&dm_tifs>;
+};
