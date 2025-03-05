@@ -134,8 +134,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	/* If simplefb is not enabled and video is active, then at least reserve
 	 * the framebuffer region to preserve the splash screen while OS is booting
 	 */
-
-	if (IS_ENABLED(CONFIG_VIDEO)) {
+	if (IS_ENABLED(CONFIG_VIDEO) && IS_ENABLED(CONFIG_OF_LIBFDT)) {
 		if (ret && video_is_active())
 			return fdt_add_fb_mem_rsv(blob);
 	}
