@@ -275,7 +275,6 @@ struct cadence_spi_plat {
 	fdt_addr_t	ahbsize;
 	bool		use_dac_mode;
 	int		read_delay;
-	bool		has_phy;
 	u32		phy_pattern_start;
 	u32		phy_tx_start;
 	u32		phy_tx_end;
@@ -314,7 +313,6 @@ struct cadence_spi_priv {
 	bool		use_dqs;
 	u32		wr_delay;
 	int		read_delay;
-	bool		has_phy;
 	u32		phy_pattern_start;
 	struct spi_mem_op phy_read_op;
 	u32		phy_tx_start;

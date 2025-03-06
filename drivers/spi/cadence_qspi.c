@@ -1396,7 +1396,6 @@ static int cadence_spi_probe(struct udevice *bus)
 	priv->trigger_address	= plat->trigger_address;
 	priv->read_delay	= plat->read_delay;
 	priv->phase_detect_selector = plat->phase_detect_selector;
-	priv->has_phy		= plat->has_phy;
 	priv->phy_pattern_start = plat->phy_pattern_start;
 	priv->phy_tx_start	= plat->phy_tx_start;
 	priv->phy_tx_end	= plat->phy_tx_end;
@@ -1575,7 +1574,7 @@ static void cadence_spi_mem_do_calibration(struct spi_slave *spi,
 	struct cadence_spi_priv *priv = dev_get_priv(bus);
 	int ret;
 
-	if (!IS_ENABLED(CONFIG_CADENCE_QSPI_PHY) || !priv->has_phy)
+	if (!IS_ENABLED(CONFIG_CADENCE_QSPI_PHY))
 		return;
 
 	priv->phy_read_op = *op;
@@ -1706,7 +1705,6 @@ static int cadence_spi_of_to_plat(struct udevice *bus)
 	 */
 	plat->read_delay = ofnode_read_s32_default(subnode, "cdns,read-delay",
 						   -1);
-	plat->has_phy = ofnode_read_bool(subnode, "cdns,phy-mode");
 
 	plat->phy_tx_start = ofnode_read_u32_default(subnode,
 						     "cdns,phy-tx-start",
