@@ -8,7 +8,7 @@
 #define _ASM_ARCH_AM62_SPL_H_
 
 /* Primary BootMode devices */
-#define BOOT_DEVICE_RAM			0x00
+#define BOOT_DEVICE_SERIAL_NAND		0x00
 #define BOOT_DEVICE_OSPI		0x01
 #define BOOT_DEVICE_QSPI		0x02
 #define BOOT_DEVICE_SPI			0x03
@@ -19,6 +19,7 @@
 #define BOOT_DEVICE_UART		0x07
 #define BOOT_DEVICE_MMC			0x08
 #define BOOT_DEVICE_EMMC		0x09
+#define BOOT_DEVICE_SPINAND		0x10
 
 #define BOOT_DEVICE_USB			0x2A
 #define BOOT_DEVICE_DFU			0x0A
@@ -31,6 +32,7 @@
 #define BOOT_DEVICE_ETHERNET		0x04
 #define BOOT_DEVICE_MMC2		0x08
 #define BOOT_DEVICE_MMC1		0x09
+#define BOOT_DEVICE_RAM			0x0F
 /* Invalid */
 #define BOOT_DEVICE_MMC2_2		0x1F
 
