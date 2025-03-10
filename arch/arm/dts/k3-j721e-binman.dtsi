@@ -13,6 +13,7 @@
 		ti-secure-rom {
 			content = <&u_boot_spl>;
 			core = "public";
+			core-opts = <2>;
 			load = <CONFIG_SPL_TEXT_BASE>;
 			keyfile = "custMpk.pem";
 		};
@@ -26,6 +27,7 @@
 		ti-secure-rom {
 			content = <&u_boot_spl_sr2>;
 			core = "public";
+			core-opts = <2>;
 			load = <CONFIG_SPL_TEXT_BASE>;
 			keyfile = "custMpk.pem";
 		};
@@ -223,6 +225,7 @@
 		ti-secure-rom {
 			content = <&u_boot_spl_fs>;
 			core = "public";
+			core-opts = <2>;
 			load = <CONFIG_SPL_TEXT_BASE>;
 			keyfile = "custMpk.pem";
 		};
@@ -256,6 +259,7 @@
 		ti-secure-rom {
 			content = <&u_boot_spl_unsigned>;
 			core = "public";
+			core-opts = <2>;
 			load = <CONFIG_SPL_TEXT_BASE>;
 			sw-rev = <CONFIG_K3_X509_SWRV>;
 			keyfile = "ti-degenerate-key.pem";
