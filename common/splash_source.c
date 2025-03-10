@@ -169,7 +169,7 @@ static int splash_select_fs_dev(struct splash_location *location)
 	return res;
 }
 
-#ifdef CONFIG_USB_STORAGE
+#if CONFIG_IS_ENABLED(USB_STORAGE) && CONFIG_IS_ENABLED(USB_HOST)
 static int splash_init_usb(void)
 {
 	int err;
