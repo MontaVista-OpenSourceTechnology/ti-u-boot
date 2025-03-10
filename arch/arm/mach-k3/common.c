@@ -37,6 +37,10 @@
 #define CLKSTOP_TRANSITION_TIMEOUT_MS	10
 #define K3_R5_MEMREGION_LPM_METADATA_OFFSET	0x108000
 
+#define PROC_BOOT_CTRL_FLAG_R5_CORE_HALT	0x00000001
+#define PROC_ID_MCU_R5FSS0_CORE1		0x02
+#define PROC_BOOT_CFG_FLAG_R5_LOCKSTEP		0x00000100
+
 #include <asm/arch/k3-qos.h>
 
 struct ti_sci_handle *get_ti_sci_handle(void)
@@ -489,3 +493,60 @@ void setup_qos(void)
 		writel(qos_data[i].val, (uintptr_t)qos_data[i].reg);
 }
 #endif
+
+int shutdown_mcu_r5_core1(void)
+{
+	struct ti_sci_handle *ti_sci = get_ti_sci_handle();
+	struct ti_sci_dev_ops *dev_ops = &ti_sci->ops.dev_ops;
+	struct ti_sci_proc_ops *proc_ops = &ti_sci->ops.proc_ops;
+	u32 dev_id_mcu_r5_core1 = put_core_ids[0];
+	u64 boot_vector;
+	u32 cfg, ctrl, sts;
+	int cluster_mode_lockstep, ret;
+
+	ret = proc_ops->proc_request(ti_sci, PROC_ID_MCU_R5FSS0_CORE1);
+	if (ret) {
+		printf("Unable to request processor control for core %d\n",
+		       PROC_ID_MCU_R5FSS0_CORE1);
+		return ret;
+	}
+
+	ret = proc_ops->get_proc_boot_status(ti_sci, PROC_ID_MCU_R5FSS0_CORE1,
+					     &boot_vector, &cfg, &ctrl, &sts);
+	if (ret) {
+		printf("Unable to get Processor boot status for core %d\n",
+		       PROC_ID_MCU_R5FSS0_CORE1);
+		goto release_proc_ctrl;
+	}
+
+	/* Shutdown MCU R5F Core 1 only if the cluster is booted in SplitMode */
+	cluster_mode_lockstep = !!(cfg & PROC_BOOT_CFG_FLAG_R5_LOCKSTEP);
+	if (cluster_mode_lockstep) {
+		ret = -EINVAL;
+		goto release_proc_ctrl;
+	}
+
+	ret = proc_ops->set_proc_boot_ctrl(ti_sci, PROC_ID_MCU_R5FSS0_CORE1,
+					   PROC_BOOT_CTRL_FLAG_R5_CORE_HALT, 0);
+	if (ret) {
+		printf("Unable to Halt core %d\n", PROC_ID_MCU_R5FSS0_CORE1);
+		goto release_proc_ctrl;
+	}
+
+	ret = dev_ops->get_device(ti_sci, dev_id_mcu_r5_core1);
+	if (ret) {
+		printf("Unable to request for device %d\n",
+		       dev_id_mcu_r5_core1);
+	}
+
+	ret = dev_ops->put_device(ti_sci, dev_id_mcu_r5_core1);
+	if (ret) {
+		printf("Unable to assert reset on core %d\n",
+		       PROC_ID_MCU_R5FSS0_CORE1);
+		return ret;
+	}
+
+release_proc_ctrl:
+	proc_ops->proc_release(ti_sci, PROC_ID_MCU_R5FSS0_CORE1);
+	return ret;
+}
