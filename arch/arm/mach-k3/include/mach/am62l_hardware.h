@@ -42,4 +42,6 @@
 /* address boot rom leaves its boot structure */
 #define K3_BOOT_PARAM_TABLE_INDEX_OCRAM		0x70816e70
 
+static const u32 put_core_ids[] = {};
+
 #endif /* __ASM_ARCH_AM62L_HARDWARE_H */
