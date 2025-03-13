@@ -72,3 +72,28 @@
 };
 
 #endif
+
+&wkup_gpio_pins_default {
+        bootph-pre-ram;
+};
+
+&wkup_gpio0 {
+        bootph-pre-ram;
+
+};
+
+&wkup_pmx0 {
+        bootph-pre-ram;
+};
+
+&fss {
+        bootph-pre-ram;
+};
+
+&mcu_fss0_ospi0_pins_default {
+        bootph-pre-ram;
+};
+
+&ospi0 {
+	bootph-pre-ram;
+};
