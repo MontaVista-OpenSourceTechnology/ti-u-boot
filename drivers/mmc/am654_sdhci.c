@@ -409,8 +409,6 @@ static void am654_sdhci_write_b(struct sdhci_host *host, u8 val, int reg)
 		 */
 		case SD_HS:
 		case MMC_HS:
-		case UHS_SDR12:
-		case UHS_SDR25:
 			val &= ~SDHCI_CTRL_HISPD;
 		default:
 			break;
