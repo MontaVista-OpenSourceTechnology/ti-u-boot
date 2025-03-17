@@ -125,12 +125,15 @@ static const struct timing_data td[] = {
 	[MMC_LEGACY]	= {"ti,otap-del-sel-legacy",
 			   "ti,itap-del-sel-legacy",
 			   0},
-	[MMC_HS]	= {"ti,otap-del-sel-mmc-hs",
-			   "ti,itap-del-sel-mms-hs",
+	[MMC_HS]	= {"ti,otap-del-sel-mmc-hs26",
+			   "ti,itap-del-sel-mmc-hs26",
 			   MMC_CAP(MMC_HS)},
 	[SD_HS]		= {"ti,otap-del-sel-sd-hs",
 			   "ti,itap-del-sel-sd-hs",
 			   MMC_CAP(SD_HS)},
+	[MMC_HS_52]	= {"ti,otap-del-sel-mmc-hs",
+			   "ti,itap-del-sel-mmc-hs",
+			   MMC_CAP(MMC_HS_52)},
 	[UHS_SDR12]	= {"ti,otap-del-sel-sdr12",
 			   "ti,itap-del-sel-sdr12",
 			   MMC_CAP(UHS_SDR12)},
@@ -626,8 +629,6 @@ static int sdhci_am654_get_otap_delay(struct udevice *dev,
 	 * value is not found
 	 */
 	for (i = MMC_LEGACY; i <= MMC_HS_400; i++) {
-		if (!td[i].otap_binding)
-			continue;
 		ret = dev_read_u32(dev, td[i].otap_binding,
 				   &plat->otap_del_sel[i]);
 		if (ret) {
