@@ -15,11 +15,17 @@
 #include <spl.h>
 #include <remoteproc.h>
 #include <elf.h>
+#include <cpu_func.h>
 
 #include "../common.h"
 
+#define PROC_BOOT_CTRL_RESET_FLAG_HSM_M4	0x00000001
+#define HSM_SRAM0_0_ADDR			0x43C00000
+#define PROC_ID_HSM_M4F				0x00000080
+
 #if IS_ENABLED(CONFIG_SYS_K3_SPL_ATF)
 enum {
+	IMAGE_ID_HSM,
 	IMAGE_ID_ATF,
 	IMAGE_ID_OPTEE,
 	IMAGE_ID_SPL,
@@ -32,6 +38,7 @@ enum {
 
 #if CONFIG_IS_ENABLED(FIT_IMAGE_POST_PROCESS)
 static const char *image_os_match[IMAGE_AMT] = {
+	"hsm",
 	"arm-trusted-firmware",
 	"tee",
 	"U-Boot",
@@ -136,6 +143,73 @@ void release_resources_for_core_shutdown(void)
 	}
 }
 
+#if IS_ENABLED(CONFIG_K3_HSM_FW)
+static int boot_hsm_core(void)
+{
+	struct ti_sci_handle *ti_sci = get_ti_sci_handle();
+	struct ti_sci_proc_ops *proc_ops = &ti_sci->ops.proc_ops;
+	u64 hsm_image_addr;
+	u32 hsm_image_size;
+	int device_type, ret;
+
+	hsm_image_addr = (u64)fit_image_info[IMAGE_ID_HSM].image_start;
+	hsm_image_size = (u32)fit_image_info[IMAGE_ID_HSM].image_len;
+
+	/* Request Control of Remote Processor */
+	ret = proc_ops->proc_request(ti_sci, PROC_ID_HSM_M4F);
+	if (ret) {
+		printf("Unable to request processor control for core %d\n",
+		       PROC_ID_HSM_M4F);
+		return ret;
+	}
+
+	/* Put the remote processor into reset */
+	ret = proc_ops->set_proc_boot_ctrl(ti_sci, PROC_ID_HSM_M4F,
+					   PROC_BOOT_CTRL_RESET_FLAG_HSM_M4, 0);
+	if (ret) {
+		printf("Unable to Halt core %d\n", PROC_ID_HSM_M4F);
+		goto release_proc_ctrl;
+	}
+
+	/*
+	 * Load the HSM firmware into core's internal memory.
+	 *
+	 * In case of HS device types, request secure entity to authenticate and
+	 * load the HSM firmware into the core memory.
+	 * In case of GP device types, copy the HSM firmware into the core
+	 * memory manually.
+	 */
+	device_type = get_device_type();
+	if (device_type == K3_DEVICE_TYPE_HS_SE ||
+	    device_type == K3_DEVICE_TYPE_HS_FS) {
+		ret = proc_ops->proc_auth_boot_image(ti_sci, &hsm_image_addr,
+						     &hsm_image_size);
+		if (ret) {
+			printf("Unable to Authenticate and Boot HSM image; ret = %d\n",
+			       ret);
+			goto release_proc_ctrl;
+		}
+	} else if (device_type == K3_DEVICE_TYPE_GP) {
+		debug("Loading HSM GP binary into SRAM0_0\n");
+		memcpy((void *)HSM_SRAM0_0_ADDR, (void *)(u32)hsm_image_addr,
+		       hsm_image_size);
+		flush_dcache_range(HSM_SRAM0_0_ADDR,
+				   HSM_SRAM0_0_ADDR + hsm_image_size);
+	}
+
+	/* Release the reset from the remote processor*/
+	ret = proc_ops->set_proc_boot_ctrl(ti_sci, PROC_ID_HSM_M4F, 0,
+					   PROC_BOOT_CTRL_RESET_FLAG_HSM_M4);
+	if (ret)
+		printf("Unable to Run core %d\n", PROC_ID_HSM_M4F);
+
+release_proc_ctrl:
+	/* Release Control of Remote Processor */
+	proc_ops->proc_release(ti_sci, PROC_ID_HSM_M4F);
+	return ret;
+}
+#endif
+
 void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 {
 	typedef void __noreturn (*image_entry_noargs_t)(void);
@@ -156,6 +230,14 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 		size = load_firmware("name_mcur5f0_0fw", "addr_mcur5f0_0load",
 				     &loadaddr);
 	}
+
+#if IS_ENABLED(CONFIG_K3_HSM_FW)
+	ret = boot_hsm_core();
+	if (ret)
+		printf("HSM core failed to boot, %d\n", ret);
+	else
+		printf("Successfully booted HSM core\n");
+#endif
 
 	/*
 	 * It is assumed that remoteproc device 1 is the corresponding
@@ -342,7 +424,7 @@ void board_fit_image_post_process(const void *fit, int node, void **p_image,
 	 * Only DM and the DTBs are being authenticated here,
 	 * rest will be authenticated when A72 cluster is up
 	 */
-	if ((i != IMAGE_ID_ATF) && (i != IMAGE_ID_OPTEE)) {
+	if (i != IMAGE_ID_ATF && i != IMAGE_ID_OPTEE && i != IMAGE_ID_HSM) {
 		ti_secure_image_check_binary(p_image, p_size);
 		ti_secure_image_post_process(p_image, p_size);
 	} else {
