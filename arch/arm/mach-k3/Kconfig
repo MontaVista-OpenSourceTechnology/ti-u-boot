@@ -199,6 +199,14 @@ config K3_X509_SWRV
 config NR_DRAM_BANKS
 	default 2
 
+config K3_HSM_FW
+	bool "Load and Boot HSM core"
+	default n
+	help
+	  Enabling this will indicate that the system has a HSM (High Security
+	  Module) M4 Core and the firmware for the core is present. When
+	  enabled, HSM core will be booted at R5 SPL execution time.
+
 if CPU_V7R
 source "arch/arm/mach-k3/r5/Kconfig"
 endif
