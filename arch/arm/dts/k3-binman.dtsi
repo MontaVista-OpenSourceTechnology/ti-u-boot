@@ -297,6 +297,17 @@
 					};
 				};
 
+#ifdef CONFIG_K3_HSM_FW
+				hsm {
+					description = "HSM binary";
+					type = "standalone";
+					compression = "none";
+					os = "hsm";
+					load = <0x82000000>;
+					entry = <0x82000000>;
+				};
+#endif
+
 				dm {
 					description = "DM binary";
 					type = "firmware";

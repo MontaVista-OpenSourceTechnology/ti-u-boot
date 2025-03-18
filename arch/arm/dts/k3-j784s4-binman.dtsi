@@ -162,6 +162,16 @@
 
 		fit {
 			images {
+
+#ifdef CONFIG_K3_HSM_FW
+				hsm {
+					hsm: blob-ext {
+						filename = "ti-hsm/hsm-demo-firmware-j784s4-hs.bin";
+					};
+				};
+
+#endif
+
 				dm {
 					ti-secure {
 						content = <&dm>;
@@ -197,7 +207,11 @@
 				conf-0 {
 					description = BOARD_DESCRIPTION;
 					firmware = "atf";
+#ifdef CONFIG_K3_HSM_FW
+					loadables = "hsm", "tee", "dm", "spl";
+#else
 					loadables = "tee", "dm", "spl";
+#endif
 					fdt = "fdt-0";
 				};
 			};
