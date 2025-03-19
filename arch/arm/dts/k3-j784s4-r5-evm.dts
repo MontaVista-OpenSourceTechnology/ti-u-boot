@@ -30,10 +30,19 @@
 };
 
 &tps659413 {
+	status = "disabled";
 	esm: esm {
 		compatible = "ti,tps659413-esm";
 		bootph-pre-ram;
 	};
+};
+
+&tps62873a {
+	status = "disabled";
+};
+
+&tps62873b {
+	status = "disabled";
 };
 
 &bucka12 {
