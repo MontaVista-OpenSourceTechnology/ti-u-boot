@@ -194,7 +194,7 @@ void board_init_f(ulong dummy)
 		panic("DRAM init failed: %d\n", ret);
 
 	if (wkup_ctrl_is_lpm_exit()) {
-		u64 meta_data_addr;
+		u32 meta_data_addr;
 
 		ret = wkup_r5f_am62_lpm_meta_data_addr(&meta_data_addr);
 		if (ret)
