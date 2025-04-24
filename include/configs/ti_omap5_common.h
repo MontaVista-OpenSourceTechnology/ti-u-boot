@@ -204,41 +204,6 @@
 			"exit; " \
 		"fi;\0"
 
-#define DEFAULT_FDT_TI_ARGS \
-	"findfdt="\
-		"if test $board_name = omap5_uevm; then " \
-			"setenv fdtfile omap5-uevm.dtb; fi; " \
-		"if test $board_name = dra7xx; then " \
-			"setenv fdtfile dra7-evm.dtb; fi;" \
-		"if test $board_name = dra72x-revc; then " \
-			"setenv fdtfile dra72-evm-revc.dtb; fi;" \
-		"if test $board_name = dra72x; then " \
-			"setenv fdtfile dra72-evm.dtb; fi;" \
-		"if test $board_name = dra71x; then " \
-			"setenv fdtfile dra71-evm.dtb; fi;" \
-		"if test $board_name = dra76x_acd; then " \
-			"setenv fdtfile dra76-evm.dtb; fi;" \
-		"if test $board_name = beagle_x15; then " \
-			"setenv fdtfile am57xx-beagle-x15.dtb; fi;" \
-		"if test $board_name = beagle_x15_revb1; then " \
-			"setenv fdtfile am57xx-beagle-x15-revb1.dtb; fi;" \
-		"if test $board_name = beagle_x15_revc; then " \
-			"setenv fdtfile am57xx-beagle-x15-revc.dtb; fi;" \
-		"if test $board_name = am5729_beagleboneai; then " \
-			"setenv fdtfile am5729-beagleboneai.dtb; fi;" \
-		"if test $board_name = am572x_idk; then " \
-			"setenv fdtfile am572x-idk.dtb; fi;" \
-		"if test $board_name = am574x_idk; then " \
-			"setenv fdtfile am574x-idk.dtb; fi;" \
-		"if test $board_name = am57xx_evm; then " \
-			"setenv fdtfile am57xx-beagle-x15.dtb; fi;" \
-		"if test $board_name = am57xx_evm_reva3; then " \
-			"setenv fdtfile am57xx-beagle-x15.dtb; fi;" \
-		"if test $board_name = am571x_idk; then " \
-			"setenv fdtfile am571x-idk.dtb; fi;" \
-		"if test $fdtfile = undefined; then " \
-			"echo WARNING: Could not determine device tree to use; fi; \0"
-
 #define GET_OVERLAY_MMC_TI_ARGS \
 	"get_overlay_mmc=" \
 		"fdt address ${fdtaddr};" \
@@ -278,7 +243,6 @@
 	DEFAULT_FIT_TI_ARGS \
 	"get_fit_config=setenv name_fit_config ${fdtfile}\0" \
 	DEFAULT_COMMON_BOOT_TI_ARGS \
-	DEFAULT_FDT_TI_ARGS \
 	GET_OVERLAY_MMC_TI_ARGS \
 	DFUARGS \
 	NETARGS \
