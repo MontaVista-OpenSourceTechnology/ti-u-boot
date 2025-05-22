@@ -74,7 +74,7 @@
 		};
 
 		tifs_enc: tifs-enc.bin {
-			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-fs-enc.bin";
+			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-enc.bin";
 			type = "blob-ext";
 		};
 
@@ -87,7 +87,7 @@
 		};
 
 		tifs_cert: tifs-cert.bin {
-			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-fs-cert.bin";
+			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-cert.bin";
 			type = "blob-ext";
 		};
 	};
@@ -117,7 +117,7 @@
 		};
 
 		tifs_enc2: tifs-enc2.bin {
-			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-fs-enc.bin";
+			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-enc.bin";
 			type = "blob-ext";
 		};
 
@@ -127,7 +127,7 @@
 		};
 
 		tifs_cert2: tifs-cert2.bin {
-			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-fs-cert.bin";
+			filename = "ti-sysfw/ti-fs-firmware-am62lx-hs-cert.bin";
 			type = "blob-ext";
 		};
 
