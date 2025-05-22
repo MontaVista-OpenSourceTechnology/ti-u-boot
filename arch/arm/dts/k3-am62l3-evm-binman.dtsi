@@ -50,9 +50,8 @@
 		};
 	};
 
-	tiboot3-am62lx-hs-fs-evm.bin {
-		filename = "tiboot3-am62lx-hs-fs-evm.bin";
-		symlink = "tiboot3.bin";
+	tiboot3.bin {
+		filename = "tiboot3.bin";
 
 		ti-secure-rom {
 			content = <&bl1>, <&tifs_enc>, <&tifs_data>, <&tifs_cert>;
