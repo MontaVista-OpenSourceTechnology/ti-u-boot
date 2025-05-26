@@ -22,7 +22,7 @@
 		filename = "board-cfg.bin";
 		bcfg_yaml: ti-board-config {
 			config = "board-cfg.yaml";
-			schema = "arch/arm/mach-k3/schema.yaml";
+			schema = "arch/arm/mach-k3/am62l-schema.yaml";
 		};
 	};
 
@@ -30,7 +30,7 @@
 		filename = "sec-cfg.bin";
 		sec_yaml: ti-board-config {
 			config = "sec-cfg.yaml";
-			schema = "arch/arm/mach-k3/schema.yaml";
+			schema = "arch/arm/mach-k3/am62l-schema.yaml";
 		};
 	};
 
@@ -40,12 +40,12 @@
 		ti-board-config {
 			bcfg_yaml_tifs: board-cfg {
 				config = "board-cfg.yaml";
-				schema = "arch/arm/mach-k3/schema.yaml";
+				schema = "arch/arm/mach-k3/am62l-schema.yaml";
 			};
 
 			sec_yaml_tifs: sec-cfg {
 				config = "sec-cfg.yaml";
-				schema = "arch/arm/mach-k3/schema.yaml";
+				schema = "arch/arm/mach-k3/am62l-schema.yaml";
 			};
 		};
 	};

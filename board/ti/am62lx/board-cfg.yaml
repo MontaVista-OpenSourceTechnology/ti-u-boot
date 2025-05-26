@@ -16,19 +16,9 @@ board-cfg:
     main_isolation_enable: 0x5A
     main_isolation_hostid: 0x2
 
-  secproxy:
-    subhdr:
-      magic: 0x1207
-      size: 7
-    scaling_factor: 0x1
-    scaling_profile: 0x1
-    disable_main_nav_secure_proxy: 0
+  bm_writer_cfg: [0, 0, 0, 0, 0]
 
-  msmc:
-    subhdr:
-      magic: 0xA5C3
-      size: 5
-    msmc_cache_size: 0x0
+  reserved: [0, 0, 0, 0, 0, 0, 0]
 
   debug_cfg:
     subhdr:
