@@ -16,7 +16,11 @@ board-cfg:
     main_isolation_enable: 0x5A
     main_isolation_hostid: 0x2
 
-  bm_writer_cfg: [0, 0, 0, 0, 0]
+  bm_writer_cfg:
+    subhdr:
+      magic: 0x7D8A
+      size: 5
+    allowed_host: 10
 
   reserved: [0, 0, 0, 0, 0, 0, 0]
 
