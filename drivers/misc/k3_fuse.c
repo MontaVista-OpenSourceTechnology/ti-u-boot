@@ -23,8 +23,8 @@ int fuse_read(u32 bank, u32 word, u32 *val)
 	}
 
 	/* Make SiP SMC call and send the word in the parameter register */
-	arm_smccc_smc(K3_SIP_OTP_READ, word,
-		      0, 0, 0, 0, 0, 0, &res);
+	arm_smccc_smc(K3_SIP_OTP_READ, bank, word,
+		      0, 0, 0, 0, 0, &res);
 
 	*val = res.a1;
 	if (res.a0 != 0)
@@ -43,14 +43,15 @@ int fuse_prog(u32 bank, u32 word, u32 val)
 	struct arm_smccc_res res;
 	u32 mask = val;
 
-	if (bank != 0U) {
-		printf("Invalid bank argument, ONLY bank 0 is supported\n");
+	/* Bank 0 is user OTP, Bank 0xFF is bootmode OTP */
+	if (bank && bank != 0xff) {
+		printf("Invalid bank argument\n");
 		return -EINVAL;
 	}
 
 	/* Make SiP SMC call and send the word, val and mask in the parameter register */
-	arm_smccc_smc(K3_SIP_OTP_WRITE, word,
-		      val, mask, 0, 0, 0, 0, &res);
+	arm_smccc_smc(K3_SIP_OTP_WRITE, bank, word,
+		      val, mask, 0, 0, 0, &res);
 
 	if (res.a0 != 0)
 		printf("SMC call failed: Error code %ld\n", res.a0);
