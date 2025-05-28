@@ -63,8 +63,17 @@
 #define K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD		BIT(31)
 #define K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RETENTION_MASK	GENMASK(3, 0)
 
-#define K3_WKUP_CTRL_MMR_CANUART_WAKE_STAT1			0x0c
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL			0x0
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD	BIT(0)
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW		0x55555554
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK	GENMASK(31, 1)
+
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_STAT1					0x0c
 #define K3_WKUP_CTRL_MMR_CANUART_WAKE_STAT1_CANUART_IO_MODE	BIT(0)
+
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE			0x10
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW		0xDD555555
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK	GENMASK(31, 0)
 
 #define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_STAT		0x18
 #define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_STAT_MW		0x555555
@@ -985,6 +994,63 @@ static void k3_ddrss_deassert_retention(struct k3_ddrss_desc *ddrss)
 			   0);
 }
 
+static void k3_ddrss_clear_retention_latch_and_magic_words(struct k3_ddrss_desc *ddrss)
+{
+	u32 val;
+
+	regmap_update_bits(ddrss->canuart_wake,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW);
+
+	regmap_update_bits(ddrss->canuart_wake,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK |
+				   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW |
+				   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD);
+
+	if (regmap_read_poll_timeout(ddrss->canuart_wake,
+				     K3_WKUP_CTRL_MMR_CANUART_WAKE_STAT1, val,
+				     val, 0, 1)) {
+		pr_emerg("%s: Timeout during latch clearing sequence\n", __func__);
+		hang();
+	}
+
+	regmap_update_bits(ddrss->ddr_pmctrl,
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL,
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD |
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RETENTION_MASK,
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD);
+
+	regmap_update_bits(ddrss->ddr_pmctrl,
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL,
+			   K3_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD,
+			   0);
+
+	regmap_update_bits(ddrss->canuart_wake,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD,
+			   0);
+
+	if (regmap_read_poll_timeout(ddrss->canuart_wake,
+				     K3_WKUP_CTRL_MMR_CANUART_WAKE_STAT1, val,
+				     !val, 0, 1)) {
+		pr_emerg("%s: Timeout during latch clearing sequence\n", __func__);
+		hang();
+	}
+
+	regmap_update_bits(ddrss->canuart_wake,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK,
+			   0);
+
+	regmap_update_bits(ddrss->canuart_wake,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+			   K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK,
+			   0);
+}
+
 static bool k3_ddrss_wkup_conf_canuart_wakeup_active(struct k3_ddrss_desc *ddrss)
 {
 	u32 active;
@@ -1010,6 +1076,19 @@ static bool k3_ddrss_wkup_conf_boot_is_resume(struct k3_ddrss_desc *ddrss)
 		k3_ddrss_wkup_conf_canuart_wakeup_active(ddrss) &&
 		k3_ddrss_wkup_conf_canuart_magic_word_set(ddrss);
 }
+
+static void k3_ddrss_run_retention_latch_clear_sequence(struct k3_ddrss_desc *ddrss)
+{
+	/*
+	 * Workaround of errata i12487
+	 * Errata states that During entry to the Deep Sleep or RTC+IO+DDR
+	 * low-power modes, SoC may not properly transition the attached
+	 * DDR into retention mode, which will lead to corruption of the DDR
+	 * data.
+	 */
+	if (IS_ENABLED(CONFIG_K3_IODDR))
+		k3_ddrss_clear_retention_latch_and_magic_words(ddrss);
+}
 #else
 static void k3_ddrss_deassert_retention(struct k3_ddrss_desc *ddrss)
 {
@@ -1018,6 +1097,10 @@ static void k3_ddrss_deassert_retention(struct k3_ddrss_desc *ddrss)
 static bool k3_ddrss_wkup_conf_boot_is_resume(struct k3_ddrss_desc *ddrss)
 {
 	return false;
+}
+
+static void k3_ddrss_run_retention_latch_clear_sequence(struct k3_ddrss_desc *ddrss)
+{
 }
 #endif
 
@@ -1043,6 +1126,9 @@ static int k3_ddrss_probe(struct udevice *dev)
 
 	if (is_lpm_resume)
 		dev_info(dev, "Detected IO+DDR resume\n");
+	else
+		/* Clear the latch after any reset or partial I/O exit */
+		k3_ddrss_run_retention_latch_clear_sequence(ddrss);
 
 	ddrss->dev = dev;
 	ret = k3_ddrss_power_on(ddrss);
