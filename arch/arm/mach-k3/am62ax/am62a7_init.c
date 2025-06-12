@@ -202,6 +202,7 @@ void board_init_f(ulong dummy)
 		lpm_resume_from_ddr(meta_data_addr);
 	}
 #endif
+	spl_enable_cache();
 
 	setup_qos();
 
