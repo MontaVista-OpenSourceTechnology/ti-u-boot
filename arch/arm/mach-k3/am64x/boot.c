@@ -80,6 +80,9 @@ static u32 __get_primary_bootmedia(u32 main_devstat)
 			return BOOT_DEVICE_USB;
 		return BOOT_DEVICE_DFU;
 
+	case BOOT_DEVICE_PCIE:
+		return BOOT_DEVICE_PCIE;
+
 	case BOOT_DEVICE_NOBOOT:
 		return BOOT_DEVICE_RAM;
 	}
