@@ -15,6 +15,7 @@
 #include <init.h>
 #include <k3-ddrss.h>
 #include <spl.h>
+#include <mach/k3-ddr.h>
 
 #include "../common/tdx-cfg-block.h"
 
@@ -32,7 +33,7 @@ int dram_init(void)
 	if (gd->ram_size < SZ_512M)
 		puts("## WARNING: Less than 512MB RAM detected\n");
 
-	return 0;
+	return k3_mem_map_init();
 }
 
 /*

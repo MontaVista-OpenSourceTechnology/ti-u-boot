@@ -24,6 +24,7 @@
 #include <asm/arch/hardware.h>
 #include <asm/gpio.h>
 #include <asm/io.h>
+#include <mach/k3-ddr.h>
 
 #define IOT2050_INFO_MAGIC		0x20502050
 
@@ -365,7 +366,7 @@ int dram_init(void)
 	struct iot2050_info *info = IOT2050_INFO_DATA;
 	gd->ram_size = ((phys_size_t)(info->ddr_size_mb)) << 20;
 
-	return 0;
+	return k3_mem_map_init();
 }
 
 ulong board_get_usable_ram_top(ulong total_size)

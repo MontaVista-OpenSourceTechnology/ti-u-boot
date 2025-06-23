@@ -8,6 +8,7 @@
 #include <asm/io.h>
 #include <spl.h>
 #include <fdt_support.h>
+#include <mach/k3-ddr.h>
 
 #include "phycore-ddr-data.h"
 #include "../common/k3/k3_ddrss_patch.h"
@@ -80,7 +81,7 @@ int dram_init(void)
 		gd->ram_size = 0x80000000;
 	}
 
-	return 0;
+	return k3_mem_map_init();
 }
 
 phys_size_t board_get_usable_ram_top(phys_size_t total_size)
