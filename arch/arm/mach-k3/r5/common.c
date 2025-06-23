@@ -210,6 +210,11 @@ release_proc_ctrl:
 }
 #endif
 
+__weak int k3_mem_map_init(void)
+{
+	return 0;
+}
+
 void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 {
 	typedef void __noreturn (*image_entry_noargs_t)(void);

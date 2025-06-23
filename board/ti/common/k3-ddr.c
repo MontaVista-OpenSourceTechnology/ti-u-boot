@@ -7,6 +7,7 @@
 #include <dm/uclass.h>
 #include <k3-ddrss.h>
 #include <spl.h>
+#include <mach/k3-ddr.h>
 
 #include "k3-ddr.h"
 
@@ -15,8 +16,14 @@ int dram_init(void)
 	s32 ret;
 
 	ret = fdtdec_setup_mem_size_base_lowest();
-	if (ret)
+	if (ret) {
 		printf("Error setting up mem size and base. %d\n", ret);
+		return ret;
+	}
+
+	ret = k3_mem_map_init();
+	if (ret)
+		printf("Error setting up MMU table. %d\n", ret);
 
 	return ret;
 }

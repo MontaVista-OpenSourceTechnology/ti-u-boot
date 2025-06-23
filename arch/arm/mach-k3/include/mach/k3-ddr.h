@@ -13,5 +13,6 @@ int dram_init_banksize(void);
 
 void fixup_ddr_driver_for_ecc(struct spl_image_info *spl_image);
 void fixup_memory_node(struct spl_image_info *spl_image);
+int k3_mem_map_init(void);
 
 #endif /* _K3_DDR_H_ */
