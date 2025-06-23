@@ -42,6 +42,7 @@
 #define PROC_BOOT_CFG_FLAG_R5_LOCKSTEP		0x00000100
 
 #include <asm/arch/k3-qos.h>
+#include <mach/k3-ddr.h>
 
 struct ti_sci_handle *get_ti_sci_handle(void)
 {
@@ -399,9 +400,6 @@ void spl_enable_cache(void)
 
 	dram_init();
 
-	/* reserve TLB table */
-	gd->arch.tlb_size = PGTABLE_SIZE;
-
 	gd->ram_top += get_effective_memsize();
 	/* keep ram_top in the 32-bit address space */
 	if (gd->ram_top >= 0x100000000)
@@ -412,6 +410,15 @@ void spl_enable_cache(void)
 	ret = spl_reserve_video_from_ram_top();
 	if (ret)
 		panic("Failed to reserve framebuffer memory (%d)\n", ret);
+
+	if (IS_ENABLED(CONFIG_ARM64)) {
+		ret = k3_mem_map_init();
+		if (ret)
+			panic("Failed to setup MMU table (%d)\n", ret);
+	}
+
+	/* reserve TLB table */
+	gd->arch.tlb_size = PGTABLE_SIZE;
 
 	gd->arch.tlb_addr = gd->relocaddr - gd->arch.tlb_size;
 	gd->arch.tlb_addr &= ~(0x10000 - 1);

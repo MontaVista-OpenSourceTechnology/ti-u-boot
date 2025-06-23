@@ -135,6 +135,13 @@ static int k3_setup_extra_mem_banks(unsigned int *map_idx)
 	return 0;
 }
 
+static void k3_spl_mem_map_init(unsigned int *map_idx)
+{
+	if (CONFIG_IS_ENABLED(VIDEO))
+		k3_mmu_add_cachable_entry(gd_video_bottom(), gd_video_top(),
+					  map_idx);
+}
+
 static int k3_uboot_mem_map_init(unsigned int *map_idx)
 {
 	int ret;
@@ -163,7 +170,11 @@ int k3_mem_map_init(void)
 
 	map_idx++;
 
-	ret = k3_uboot_mem_map_init(&map_idx);
+	if (xpl_phase() == PHASE_SPL)
+		k3_spl_mem_map_init(&map_idx);
+	else
+		ret = k3_uboot_mem_map_init(&map_idx);
+
 	if (ret)
 		return ret;
 
