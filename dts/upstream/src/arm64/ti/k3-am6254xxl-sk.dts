@@ -1,37 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-only OR MIT
 /*
- * AM625 SK: https://www.ti.com/lit/zip/sprr448
+ * AM6254xxl SiP SK: https://www.ti.com/lit/df/sprr482b/sprr482b.zip
+ * Webpage: https://www.ti.com/tool/SK-AM62-SIP
  *
- * Copyright (C) 2021-2024 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright (C) 2025 Texas Instruments Incorporated - https://www.ti.com/
  */
 
-/dts-v1/;
-
-#include "k3-am625.dtsi"
+#include "k3-am6254xxl.dtsi"
 #include "k3-am62x-sk-common.dtsi"
 
-#include "k3-timesync-router.h"
-
 / {
-	compatible = "ti,am625-sk", "ti,am625";
-	model = "Texas Instruments AM625 SK";
-
-	opp-table {
-		/* Add 1.4GHz OPP for am625-sk board. Requires VDD_CORE to be at 0.85V */
-		opp-1400000000 {
-			opp-hz = /bits/ 64 <1400000000>;
-			opp-supported-hw = <0x01 0x0004>;
-			clock-latency-ns = <6000000>;
-		};
-	};
-
-	memory@80000000 {
-		bootph-pre-ram;
-		device_type = "memory";
-		/* 2G RAM */
-		reg = <0x00000000 0x80000000 0x00000000 0x80000000>;
-
-	};
+	model = "Texas Instruments AM6254xxl SK";
+	compatible = "ti,am6254xxl-sk", "ti,am6254xxl";
 
 	vdd_sd_dv: regulator-4 {
 		/* Output of TLV71033 */
@@ -61,39 +41,7 @@
 	};
 };
 
-&vmain_pd {
-	bootph-all;
-};
-
-&vcc_5v0 {
-	bootph-all;
-};
-
-&vcc_3v3_sys {
-	bootph-all;
-};
-
-&vdd_mmc1 {
-	bootph-all;
-};
-
 &main_pmx0 {
-	main_mmc0_pins_default: main-mmc0-default-pins {
-		bootph-all;
-		pinctrl-single,pins = <
-			AM62X_IOPAD(0x220, PIN_INPUT, 0) /* (Y3) MMC0_CMD */
-			AM62X_IOPAD(0x218, PIN_INPUT, 0) /* (AB1) MMC0_CLK */
-			AM62X_IOPAD(0x214, PIN_INPUT, 0) /* (AA2) MMC0_DAT0 */
-			AM62X_IOPAD(0x210, PIN_INPUT_PULLUP, 0) /* (AA1) MMC0_DAT1 */
-			AM62X_IOPAD(0x20c, PIN_INPUT_PULLUP, 0) /* (AA3) MMC0_DAT2 */
-			AM62X_IOPAD(0x208, PIN_INPUT_PULLUP, 0) /* (Y4) MMC0_DAT3 */
-			AM62X_IOPAD(0x204, PIN_INPUT_PULLUP, 0) /* (AB2) MMC0_DAT4 */
-			AM62X_IOPAD(0x200, PIN_INPUT_PULLUP, 0) /* (AC1) MMC0_DAT5 */
-			AM62X_IOPAD(0x1fc, PIN_INPUT_PULLUP, 0) /* (AD2) MMC0_DAT6 */
-			AM62X_IOPAD(0x1f8, PIN_INPUT_PULLUP, 0) /* (AC2) MMC0_DAT7 */
-		>;
-	};
-
 	main_rgmii2_pins_default: main-rgmii2-default-pins {
 		bootph-all;
 		pinctrl-single,pins = <
@@ -112,6 +60,23 @@
 		>;
 	};
 
+	ospi0_pins_default: ospi0-default-pins {
+		bootph-all;
+		pinctrl-single,pins = <
+			AM62X_IOPAD(0x000, PIN_OUTPUT, 0) /* (H24) OSPI0_CLK */
+			AM62X_IOPAD(0x02c, PIN_OUTPUT, 0) /* (F23) OSPI0_CSn0 */
+			AM62X_IOPAD(0x00c, PIN_INPUT, 0) /* (E25) OSPI0_D0 */
+			AM62X_IOPAD(0x010, PIN_INPUT, 0) /* (G24) OSPI0_D1 */
+			AM62X_IOPAD(0x014, PIN_INPUT, 0) /* (F25) OSPI0_D2 */
+			AM62X_IOPAD(0x018, PIN_INPUT, 0) /* (F24) OSPI0_D3 */
+			AM62X_IOPAD(0x01c, PIN_INPUT, 0) /* (J23) OSPI0_D4 */
+			AM62X_IOPAD(0x020, PIN_INPUT, 0) /* (J25) OSPI0_D5 */
+			AM62X_IOPAD(0x024, PIN_INPUT, 0) /* (H25) OSPI0_D6 */
+			AM62X_IOPAD(0x028, PIN_INPUT, 0) /* (J22) OSPI0_D7 */
+			AM62X_IOPAD(0x008, PIN_INPUT, 0) /* (J24) OSPI0_DQS */
+		>;
+	};
+
 	vdd_sd_dv_pins_default: vdd-sd-dv-default-pins {
 		bootph-all;
 		pinctrl-single,pins = <
@@ -125,6 +90,22 @@
 			AM62X_IOPAD(0x01d4, PIN_INPUT, 7) /* (B15) UART0_RTSn.GPIO1_23 */
 		>;
 	};
+};
+
+&vmain_pd {
+	bootph-all;
+};
+
+&vcc_5v0 {
+	bootph-all;
+};
+
+&vcc_3v3_sys {
+	bootph-all;
+};
+
+&vdd_mmc1 {
+	bootph-all;
 };
 
 &main_gpio0 {
@@ -166,14 +147,6 @@
 	};
 };
 
-&sdhci0 {
-	bootph-all;
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&main_mmc0_pins_default>;
-	disable-wp;
-};
-
 &sdhci1 {
 	vmmc-supply = <&vdd_mmc1>;
 	vqmmc-supply = <&vdd_sd_dv>;
@@ -182,11 +155,6 @@
 &cpsw3g {
 	pinctrl-names = "default";
 	pinctrl-0 = <&main_rgmii1_pins_default>, <&main_rgmii2_pins_default>;
-
-	cpts@3d000 {
-		/* MAP HW3_TS_PUSH to GENF1 */
-		ti,pps = <2 1>;
-	};
 };
 
 &cpsw_port2 {
@@ -208,6 +176,11 @@
 };
 
 &ospi0 {
+	bootph-all;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&ospi0_pins_default>;
+
 	flash@0 {
 		bootph-all;
 		compatible = "jedec,spi-nor";
@@ -220,7 +193,6 @@
 		cdns,tchsh-ns = <60>;
 		cdns,tslch-ns = <60>;
 		cdns,read-delay = <4>;
-		cdns,phy-mode;
 
 		partitions {
 			bootph-all;
@@ -265,15 +237,4 @@
 			};
 		};
 	};
-};
-
-&tlv320aic3106 {
-	DVDD-supply = <&vcc_1v8>;
-};
-
-&timesync_router {
-	mux-reg-masks-state = <
-		K3_TS_OFFSET(12, 0x0001ffff, 17)
-		>;
-	status = "okay";
 };
