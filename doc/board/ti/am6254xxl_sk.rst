@@ -86,7 +86,7 @@ Set the variables corresponding to this platform:
   export UBOOT_CFG_CORTEXR=am6254xxl_evm_r5_defconfig
   export UBOOT_CFG_CORTEXA=am6254xxl_evm_a53_defconfig
   export TFA_BOARD=lite
-  export TFA_EXTRA_ARGS="PRELOADED_BL33_BASE=0x81880000 BL32_BASE=0x80080000"
+  export TFA_EXTRA_ARGS="PRELOADED_BL33_BASE=0x82000000 BL32_BASE=0x80080000"
   export OPTEE_PLATFORM=k3-am62x
   export OPTEE_EXTRA_ARGS="CFG_TZDRAM_START=0x80080000"
 
@@ -210,45 +210,49 @@ This provides an overview memory usage in A53 SPL stage.
      - 0x80080000
      - 0x81880000
 
-   * - TEXT BASE
+   * - EMPTY
      - 0x81880000
-     - 0x818d8000
+     - 0x82000000
+
+   * - TEXT BASE
+     - 0x82000000
+     - 0x82058000
 
    * - EMPTY
-     - 0x818d8000
-     - 0x81a00000
+     - 0x82058000
+     - 0x82180000
 
    * - BMP IMAGE
-     - 0x81a00000
-     - 0x82377660
+     - 0x82180000
+     - 0x82af7660
 
    * - STACK
-     - 0x82377660
-     - 0x82377e60
+     - 0x82af7660
+     - 0x82af7e60
 
    * - GD
-     - 0x82377e60
-     - 0x80b78000
+     - 0x82af7e60
+     - 0x82af8000
 
    * - MALLOC
-     - 0x82378000
-     - 0x82380000
+     - 0x82af8000
+     - 0x82b00000
 
    * - EMPTY
-     - 0x82380000
-     - 0x82480000
+     - 0x82b00000
+     - 0x82c00000
 
    * - BSS
-     - 0x82480000
-     - 0x82500000
+     - 0x82c00000
+     - 0x82c80000
 
    * - BLOBS
-     - 0x82500000
-     - 0x82500400
+     - 0x82c80000
+     - 0x82c80400
 
    * - EMPTY
-     - 0x82500400
-     - 0x82800000
+     - 0x82c80400
+     - 0x82f80000
 
 Switch Setting for Boot Mode
 ----------------------------
