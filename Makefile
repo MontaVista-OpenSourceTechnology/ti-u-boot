@@ -1381,16 +1381,17 @@ ifneq ($(EXT_DTB),)
 ext_dtb_list := $(basename $(notdir $(EXT_DTB)))
 default_dt := $(firstword $(ext_dtb_list))
 of_list := "$(ext_dtb_list)"
-of_list_dirs := $(dir $(EXT_DTB))
+of_list_dirs := $(dir $(EXT_DTB)) $(dt_dir)
 else
 of_list := $(CONFIG_OF_LIST)
-ifneq ($(CONFIG_OF_UPSTREAM_INCLUDE_LOCAL_FALLBACK_DTBOS),)
-of_list_dirs := $(dt_dir) arch/$(ARCH)/dts
-else
 of_list_dirs := $(dt_dir)
 endif
 default_dt := $(if $(DEVICE_TREE),$(DEVICE_TREE),$(CONFIG_DEFAULT_DEVICE_TREE))
 endif
+
+ifneq ($(CONFIG_OF_UPSTREAM_INCLUDE_LOCAL_FALLBACK_DTBOS),)
+of_list_dirs += arch/$(ARCH)/dts
+else
 
 quiet_cmd_binman = BINMAN  $@
 cmd_binman = $(srctree)/tools/binman/binman $(if $(BINMAN_DEBUG),-D) \
