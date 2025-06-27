@@ -1160,7 +1160,7 @@ config SPL_ONENAND_SUPPORT
 
 config SPL_OS_BOOT
 	bool "Activate Falcon Mode"
-	depends on !TI_SECURE_DEVICE
+	depends on !TI_SECURE_DEVICE_K2_OMAP2PLUS
 	help
 	  Enable booting directly to an OS from SPL.
 	  for more info read doc/README.falcon
@@ -1168,6 +1168,7 @@ config SPL_OS_BOOT
 config SPL_OS_BOOT_SECURE
 	bool "Allow Falcon Mode on secure devices"
 	depends on SPL_OS_BOOT
+	default y if TI_SECURE_DEVICE_K3
 	help
 	  This allows for secure devices with signature verification capabilities
 	  to use falcon mode by disabling certain inherently non-securable options
