@@ -2225,9 +2225,17 @@ config TFABOOT
 	  Enabling this option will make a U-Boot binary that is relying
 	  on other firmware layers to provide secure functionality.
 
+config TI_SECURE_DEVICE_K2_OMAP2PLUS
+	bool
+
+config TI_SECURE_DEVICE_K3
+	bool
+
 config TI_SECURE_DEVICE
 	bool "HS Device Type Support"
 	depends on ARCH_KEYSTONE || ARCH_OMAP2PLUS || ARCH_K3
+	select TI_SECURE_DEVICE_K2_OMAP2PLUS if ARCH_KEYSTONE || ARCH_OMAP2PLUS
+	select TI_SECURE_DEVICE_K3 if ARCH_K3
 	help
 	  If a high secure (HS) device type is being used, this config
 	  must be set. This option impacts various aspects of the
