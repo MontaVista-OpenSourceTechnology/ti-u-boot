@@ -74,6 +74,11 @@ int spl_load_image_ext_os(struct spl_image_info *spl_image,
 	struct disk_partition part_info = {};
 	__maybe_unused char *file;
 
+	if (!CONFIG_IS_ENABLED(FALCON_LOAD_ARGS))
+		return spl_load_image_ext(spl_image, bootdev, block_dev,
+					  partition,
+					  CONFIG_SPL_FS_LOAD_KERNEL_NAME);
+
 	if (part_get_info(block_dev, partition, &part_info)) {
 		printf("spl: no partition table found\n");
 		return -1;

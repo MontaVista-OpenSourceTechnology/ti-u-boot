@@ -107,6 +107,11 @@ int spl_load_image_fat_os(struct spl_image_info *spl_image,
 	int err;
 	__maybe_unused char *file;
 
+	if (!CONFIG_IS_ENABLED(FALCON_LOAD_ARGS))
+		return spl_load_image_fat(spl_image, bootdev, block_dev,
+					  partition,
+					  CONFIG_SPL_FS_LOAD_KERNEL_NAME);
+
 	err = spl_register_fat_device(block_dev, partition);
 	if (err)
 		return err;

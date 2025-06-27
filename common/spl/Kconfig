@@ -1181,6 +1181,16 @@ config SPL_OS_BOOT_ALLOW_FALLBACK
 	  Enable support to fallback to regular boot if falcon mode fails.
 	  When enabled, SPL will try to load U-Boot if loading the kernel fails.
 
+config SPL_FALCON_LOAD_ARGS
+	bool "Allow loading of args file in falcon mode"
+	depends on SPL_OS_BOOT && SYS_MMCSD_FS_BOOT && !SPL_OS_BOOT_SECURE
+	default y
+	help
+	  Say y to enable loading of SPL_FS_LOAD_ARGS_NAME which is used as
+	  the OS kernel argument from the filesystem (typically the DTB).
+	  This could be disabled if the falcon payload itself contains the
+	  argument (or DTB) like in a FIT container.
+
 config SPL_PAYLOAD_ARGS_ADDR
 	hex "Address in memory to load 'args' file for Falcon Mode to"
 	depends on SPL_OS_BOOT || SPL_LOAD_FIT_OPENSBI_OS_BOOT
