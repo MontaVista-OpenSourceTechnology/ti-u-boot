@@ -337,12 +337,13 @@ config BOOTM_ELF
 
 config CMD_BOOTZ
 	bool "bootz"
+	depends on !SPL_OS_BOOT_SECURE
 	help
 	  Boot the Linux zImage
 
 config CMD_BOOTI
 	bool "booti"
-	depends on ARM64 || RISCV || SANDBOX
+	depends on (ARM64 || RISCV || SANDBOX) && !SPL_OS_BOOT_SECURE
 	default y
 	help
 	  Boot an AArch64 Linux Kernel image from memory.
