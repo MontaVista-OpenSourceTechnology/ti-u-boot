@@ -23,7 +23,11 @@
 			content-sysfw-data = <&combined_tifs_cfg>;
 			content-sysfw-inner-cert = <&sysfw_inner_cert>;
 			content-dm-data = <&combined_dm_cfg>;
+#ifdef CONFIG_K3_HSM_FW
+			load = <0x43c40000>;
+#else
 			load = <0x43c00000>;
+#endif
 			load-sysfw = <0x40000>;
 			load-sysfw-data = <0x67000>;
 			load-dm-data = <0x43c7a800>;
@@ -75,7 +79,11 @@
 			content-sysfw-data = <&combined_tifs_cfg_fs>;
 			content-sysfw-inner-cert = <&sysfw_inner_cert_fs>;
 			content-dm-data = <&combined_dm_cfg_fs>;
+#ifdef CONFIG_K3_HSM_FW
+			load = <0x43c40000>;
+#else
 			load = <0x43c00000>;
+#endif
 			load-sysfw = <0x40000>;
 			load-sysfw-data = <0x67000>;
 			load-dm-data = <0x43c7a800>;
