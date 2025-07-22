@@ -1106,10 +1106,10 @@ static void k3_ddrss_run_retention_latch_clear_sequence(struct k3_ddrss_desc *dd
 
 static int k3_ddrss_probe(struct udevice *dev)
 {
-	u64 end;
+	u64 end, bank0, bank1;
 	int ret;
 	struct k3_ddrss_desc *ddrss = dev_get_priv(dev);
-	__maybe_unused u32 inst, ddr_ram_size, ecc_res;
+	__maybe_unused u32 inst, ddr_ram_size, ecc_res, start;
 	__maybe_unused struct k3_ddrss_data *ddrss_data = (struct k3_ddrss_data *)dev_get_driver_data(dev);
 	__maybe_unused struct k3_ddrss_ecc_region *range = &ddrss->ecc_range;
 	__maybe_unused struct k3_msmc *msmc_parent = NULL;
@@ -1170,11 +1170,15 @@ static int k3_ddrss_probe(struct udevice *dev)
 		k3_ddrss_lpddr4_ecc_calc_reserved_mem(ddrss);
 
 		k3_ddrss_ddr_inline_ecc_base_size_calc(range);
+
+		bank0 = ddrss->ddr_bank_base[0];
+		bank1 = ddrss->ddr_bank_base[1];
+
 		if (!range->range) {
 			/* Configure entire DDR space by default */
 			debug("%s: Defaulting to protecting entire DDR space using inline ECC\n",
 			      __func__);
-			ddrss->ecc_range.start = ddrss->ddr_bank_base[0];
+			ddrss->ecc_range.start = bank0;
 			ddrss->ecc_range.range = ddrss->ddr_ram_size - ddrss->ecc_reserved_space;
 		} else {
 			ddrss->ecc_range.start = range->start;
@@ -1183,6 +1187,7 @@ static int k3_ddrss_probe(struct udevice *dev)
 
 #if !CONFIG_IS_ENABLED(K3_MULTI_DDR)
 		end = ddrss->ecc_range.start + ddrss->ecc_range.range;
+		start = ddrss->ecc_range.start;
 		inst = ddrss->instance;
 		ddr_ram_size = ddrss->ddr_ram_size;
 		ecc_res = ddrss->ecc_reserved_space;
@@ -1192,7 +1197,11 @@ static int k3_ddrss_probe(struct udevice *dev)
 		else
 			ddrss->ecc_regions[0].range = ddrss->ecc_range.range;
 
-		ddrss->ecc_regions[0].start = ddrss->ecc_range.start - ddrss->ddr_bank_base[0];
+		/* Check in which bank we are */
+		if (start >= bank1)
+			ddrss->ecc_regions[0].start = start - bank1 + ddrss->ddr_bank_size[0];
+		else
+			ddrss->ecc_regions[0].start = start - bank0;
 #else
 
 		/* In case multi-DDR, we rely on MSMC's calculation of regions for each DDR */
@@ -1211,7 +1220,7 @@ static int k3_ddrss_probe(struct udevice *dev)
 
 		if (msmc_parent->R0[0].start < 0) {
 			/* Configure entire DDR space by default */
-			ddrss->ecc_regions[0].start = ddrss->ddr_bank_base[0];
+			ddrss->ecc_regions[0].start = bank0;
 			ddrss->ecc_regions[0].range = ddr_ram_size - ecc_res;
 		} else {
 			end = msmc_parent->R0[inst].start + msmc_parent->R0[inst].range;
