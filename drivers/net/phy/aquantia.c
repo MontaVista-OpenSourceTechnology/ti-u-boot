@@ -551,14 +551,15 @@ int aquantia_config(struct phy_device *phydev)
 
 int aquantia_startup(struct phy_device *phydev)
 {
-	u32 speed;
-	int i = 0;
+	u32 speed, i = 0;
 	int reg;
 
 	phydev->duplex = DUPLEX_FULL;
 
 	/* if the AN is still in progress, wait till timeout. */
 	if (!aquantia_link_is_up(phydev)) {
+		u32 aneg_timeout = env_get_ulong("phy_aneg_timeout", 10,
+						 CONFIG_PHY_ANEG_TIMEOUT);
 		printf("%s Waiting for PHY auto negotiation to complete",
 		       phydev->dev->name);
 		do {
@@ -566,9 +567,9 @@ int aquantia_startup(struct phy_device *phydev)
 			if ((i++ % 500) == 0)
 				printf(".");
 		} while (!aquantia_link_is_up(phydev) &&
-			 i < (4 * CONFIG_PHY_ANEG_TIMEOUT));
+			 i < (4 * aneg_timeout));
 
-		if (i > CONFIG_PHY_ANEG_TIMEOUT)
+		if (i > aneg_timeout)
 			printf(" TIMEOUT !\n");
 	}
 
