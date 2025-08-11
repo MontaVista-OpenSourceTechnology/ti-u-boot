@@ -10,6 +10,9 @@
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
 
+#define CTRLMMR_WKUP_GP_SW1_REG		4
+#define GP_SW1_VARIANT_MOD_OPR			16
+
 struct soc_ti_k3_plat {
 	const char *family;
 	const char *revision;
@@ -79,12 +82,32 @@ static char *j721e_rev_string_map[] = {
 	"1.0", "1.1", "2.0",
 };
 
+static char *am62p_gpsw_rev_string_map[] = {
+	"1.0", "1.1", "1.2",
+};
+
 static char *typical_rev_string_map[] = {
 	"1.0", "2.0", "3.0",
 };
 
-static const char *get_rev_string(u32 idreg)
+static int
+soc_ti_k3_get_gpsw_variant(struct udevice *dev)
 {
+	u32 gpsw_val = 0;
+	void *gpsw_addr;
+
+	gpsw_addr = dev_read_addr_index_ptr(dev, 1);
+	if (!gpsw_addr)
+		return -EINVAL;
+
+	gpsw_val = readl(gpsw_addr + CTRLMMR_WKUP_GP_SW1_REG);
+
+	return gpsw_val % GP_SW1_VARIANT_MOD_OPR;
+}
+
+static const char *get_rev_string(struct udevice *dev, u32 idreg)
+{
+	u32 gpsw_variant;
 	u32 rev;
 	u32 soc;
 
@@ -96,7 +119,11 @@ static const char *get_rev_string(u32 idreg)
 		if (rev >= ARRAY_SIZE(j721e_rev_string_map))
 			goto bail;
 		return j721e_rev_string_map[rev];
-
+	case JTAG_ID_PARTNO_AM62PX:
+		gpsw_variant = soc_ti_k3_get_gpsw_variant(dev);
+		if ((gpsw_variant >= ARRAY_SIZE(am62p_gpsw_rev_string_map)) || gpsw_variant < 0)
+			goto bail;
+		return am62p_gpsw_rev_string_map[gpsw_variant];
 	default:
 		if (rev >= ARRAY_SIZE(typical_rev_string_map))
 			goto bail;
@@ -133,17 +160,17 @@ static const struct soc_ops soc_ti_k3_ops = {
 int soc_ti_k3_probe(struct udevice *dev)
 {
 	struct soc_ti_k3_plat *plat = dev_get_plat(dev);
-	u32 idreg;
 	void *idreg_addr;
+	u32 idreg;
 
-	idreg_addr = dev_read_addr_ptr(dev);
+	idreg_addr = dev_read_addr_index_ptr(dev, 0);
 	if (!idreg_addr)
 		return -EINVAL;
 
 	idreg = readl(idreg_addr);
 
 	plat->family = get_family_string(idreg);
-	plat->revision = get_rev_string(idreg);
+	plat->revision = get_rev_string(dev, idreg);
 
 	return 0;
 }
