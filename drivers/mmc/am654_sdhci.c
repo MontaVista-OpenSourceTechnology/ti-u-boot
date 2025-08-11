@@ -629,6 +629,12 @@ const struct soc_attr am654_sdhci_soc_attr[] = {
 	{/* sentinel */}
 };
 
+static struct soc_attr sdhci_am654_descope_hs400[] = {
+	{ .family = "AM62PX", .revision = "SR1.0" },
+	{ .family = "AM62PX", .revision = "SR1.1" },
+	{ /* sentinel */ }
+};
+
 static int sdhci_am654_get_otap_delay(struct udevice *dev,
 				      struct mmc_config *cfg)
 {
@@ -713,6 +719,12 @@ static int am654_sdhci_probe(struct udevice *dev)
 	if (soc && soc->data) {
 		soc_drv_data = soc->data;
 		host->ops = soc_drv_data->ops;
+	}
+
+	soc = soc_device_match(sdhci_am654_descope_hs400);
+	if (soc && (plat->cfg.host_caps & (MMC_MODE_HS400 | MMC_MODE_HS400_ES))) {
+		dev_info(dev, "Disable descoped HS400 mode for this silicon revision\n");
+		plat->cfg.host_caps &= ~(MMC_MODE_HS400 | MMC_MODE_HS400_ES);
 	}
 
 	host->mmc->priv = host;
