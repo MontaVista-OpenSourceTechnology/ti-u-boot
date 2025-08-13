@@ -82,6 +82,10 @@ static char *j721e_rev_string_map[] = {
 	"1.0", "1.1", "2.0",
 };
 
+static char *am62lx_rev_string_map[] = {
+	"1.0", "1.1",
+};
+
 static char *am62p_gpsw_rev_string_map[] = {
 	"1.0", "1.1", "1.2",
 };
@@ -119,6 +123,10 @@ static const char *get_rev_string(struct udevice *dev, u32 idreg)
 		if (rev >= ARRAY_SIZE(j721e_rev_string_map))
 			goto bail;
 		return j721e_rev_string_map[rev];
+	case JTAG_ID_PARTNO_AM62LX:
+		if (rev >= ARRAY_SIZE(am62lx_rev_string_map))
+			goto bail;
+		return am62lx_rev_string_map[rev];
 	case JTAG_ID_PARTNO_AM62PX:
 		gpsw_variant = soc_ti_k3_get_gpsw_variant(dev);
 		if ((gpsw_variant >= ARRAY_SIZE(am62p_gpsw_rev_string_map)) || gpsw_variant < 0)
