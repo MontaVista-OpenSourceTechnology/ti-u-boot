@@ -95,7 +95,8 @@
 		filename = "tispl.bin";
 
 		ti-secure-rom {
-			content = <&atf>, <&tifs_enc2>, <&tifs_data2>, <&tifs_cert2>, <&spl>;
+			content = <&atf>, <&tifs_enc2>, <&tifs_data2>,
+				  <&tifs_cert2>, <&tee>, <&spl>;
 			combined;
 			sysfw-inner-cert;
 			dm-data;
@@ -105,8 +106,10 @@
 			content-sysfw = <&tifs_enc2>;
 			content-sysfw-data = <&tifs_data2>;
 			content-sysfw-inner-cert = <&tifs_cert2>;
+			content-tee = <&tee>;
 			content-dm-data = <&spl>;
 			load = <CONFIG_K3_ATF_LOAD_ADDR>;
+			load-tee = <CONFIG_K3_OPTEE_LOAD_ADDR>;
 			load-sysfw = <CONFIG_K3_TIFS_LOAD_ADDR>;
 			load-sysfw-data = <CONFIG_K3_TIFS_DATA_LOAD_ADDR>;
 			load-dm-data = <CONFIG_SPL_TEXT_BASE>;
@@ -130,10 +133,12 @@
 			type = "blob-ext";
 		};
 
+		tee: tee-os {
+		};
+
 		spl: u-boot-spl {
 			no-expanded;
 		};
-
 	};
 
 	u-boot.img {
