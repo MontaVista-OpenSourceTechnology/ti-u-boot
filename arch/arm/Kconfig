@@ -805,6 +805,7 @@ config ARCH_K3
 	select REGEX
 	select FIT_SIGNATURE if ARM64
 	select DMA_ADDR_T_64BIT
+	select LTO
 	imply TI_SECURE_DEVICE
 
 config ARCH_OMAP2PLUS
