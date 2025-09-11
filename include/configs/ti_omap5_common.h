@@ -241,7 +241,8 @@
 		"setenv bootfile zImage; " \
 	"fi\0" \
 	DEFAULT_FIT_TI_ARGS \
-	"get_fit_config=setenv name_fit_config ${fdtfile}\0" \
+	"get_fit_config=setexpr name_fit_config gsub \"ti/omap/\" \"\" ${fdtfile}\0" \
+	"run get_fit_config;\0" \
 	DEFAULT_COMMON_BOOT_TI_ARGS \
 	GET_OVERLAY_MMC_TI_ARGS \
 	DFUARGS \
