@@ -81,10 +81,6 @@
 	bootph-all;
 };
 
-&main_uart0_pins_default {
-	bootph-all;
-};
-
 &cbass_mcu {
 	bootph-all;
 };
