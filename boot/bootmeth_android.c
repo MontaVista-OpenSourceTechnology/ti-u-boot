@@ -462,6 +462,7 @@ static int boot_android_normal(struct bootflow *bflow)
 	int ret;
 	ulong loadaddr = env_get_hex("loadaddr", 0);
 	ulong vloadaddr = env_get_hex("vendor_boot_comp_addr_r", 0);
+	ulong fdtoverlay_addr_r = env_get_hex("fdtoverlay_addr_r", 0);
 
 	ret = run_avb_verification(bflow);
 	if (ret < 0)
@@ -482,6 +483,10 @@ static int boot_android_normal(struct bootflow *bflow)
 
 	set_abootimg_addr(loadaddr);
 	set_avendor_bootimg_addr(vloadaddr);
+
+	ret = read_slotted_partition(desc, "dtbo", priv->slot, fdtoverlay_addr_r);
+	if (ret < 0)
+		return log_msg_ret("read dtbo", ret);
 
 	ret = bootm_boot_start(loadaddr, bflow->cmdline);
 
