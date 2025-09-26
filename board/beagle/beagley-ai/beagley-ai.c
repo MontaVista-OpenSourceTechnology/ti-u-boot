@@ -28,7 +28,13 @@ int board_init(void)
 
 int dram_init(void)
 {
-	return fdtdec_setup_mem_size_base();
+	int ret;
+
+	ret = fdtdec_setup_mem_size_base();
+	if (ret)
+		return ret;
+
+	return k3_mem_map_init();
 }
 
 int dram_init_banksize(void)
