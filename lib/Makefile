@@ -93,6 +93,7 @@ obj-$(CONFIG_$(XPL_)LZ4) += lz4_wrapper.o
 obj-$(CONFIG_$(XPL_)LIB_RATIONAL) += rational.o
 
 obj-$(CONFIG_LIBAVB) += libavb/
+obj-$(CONFIG_AVB_ROOT_OF_TRUST) += avb_root_of_trust.o
 
 obj-$(CONFIG_$(PHASE_)OF_LIBFDT) += libfdt/
 obj-$(CONFIG_$(PHASE_)OF_REAL) += fdtdec_common.o fdtdec.o
