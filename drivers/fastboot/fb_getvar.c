@@ -26,6 +26,9 @@ static void getvar_has_slot(char *var_parameter, char *response);
 static void getvar_partition_type(char *part_name, char *response);
 static void getvar_partition_size(char *part_name, char *response);
 static void getvar_is_userspace(char *var_parameter, char *response);
+static void getvar_unlocked(char *var_parameter, char *response);
+static void getvar_unlock_ability(char *var_parameter, char *response);
+static void getvar_critical_unlocked(char *var_parameter, char *response);
 
 static const struct {
 	const char *variable;
@@ -89,6 +92,18 @@ static const struct {
 	}, {
 		.variable = "is-userspace",
 		.dispatch = getvar_is_userspace,
+		.list = true
+	}, {
+		.variable = "unlocked",
+		.dispatch = getvar_unlocked,
+		.list = true
+	}, {
+		.variable = "unlock_ability",
+		.dispatch = getvar_unlock_ability,
+		.list = true
+	}, {
+		.variable = "critical_unlocked",
+		.dispatch = getvar_critical_unlocked,
 		.list = true
 	}
 };
@@ -251,6 +266,59 @@ static void getvar_is_userspace(char *var_parameter, char *response)
 {
 	fastboot_okay("no", response);
 }
+
+#if CONFIG_IS_ENABLED(FASTBOOT_LOCKING)
+static void getvar_unlocked(char *var_parameter, char *response)
+{
+	char *device_unlocked = env_get("device_unlocked");
+
+	if (device_unlocked && !strcmp(device_unlocked, "1"))
+		fastboot_okay("yes", response);
+	else
+		fastboot_okay("no", response);
+}
+
+static void getvar_unlock_ability(char *var_parameter, char *response)
+{
+	char *unlock_ability = env_get("fastboot.unlock_ability");
+
+	if (unlock_ability && !strcmp(unlock_ability, "1")) {
+		fastboot_okay("1", response);
+		printf("INFO: Unlock ability enabled by Android HAL\n");
+	} else {
+		fastboot_okay("0", response);
+		printf("INFO: Unlock ability disabled (enable in Settings > Developer options > OEM unlocking)\n");
+	}
+}
+
+static void getvar_critical_unlocked(char *var_parameter, char *response)
+{
+	char *critical_unlocked = env_get("critical_unlocked");
+
+	if (critical_unlocked && !strcmp(critical_unlocked, "1"))
+		fastboot_okay("yes", response);
+	else
+		fastboot_okay("no", response);
+}
+
+#else /* !CONFIG_IS_ENABLED(FASTBOOT_LOCKING) */
+
+static void getvar_unlocked(char *var_parameter, char *response)
+{
+	fastboot_okay("yes", response);
+}
+
+static void getvar_unlock_ability(char *var_parameter, char *response)
+{
+	fastboot_okay("0", response);
+}
+
+static void getvar_critical_unlocked(char *var_parameter, char *response)
+{
+	fastboot_okay("yes", response);
+}
+
+#endif /* CONFIG_IS_ENABLED(FASTBOOT_LOCKING) */
 
 static int current_all_dispatch;
 void fastboot_getvar_all(char *response)

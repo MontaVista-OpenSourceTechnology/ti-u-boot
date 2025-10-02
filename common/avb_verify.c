@@ -6,6 +6,7 @@
 #include <avb_verify.h>
 #include <blk.h>
 #include <cpu_func.h>
+#include <env.h>
 #include <image.h>
 #include <malloc.h>
 #include <part.h>
@@ -720,23 +721,191 @@ static AvbIOResult write_rollback_index(AvbOps *ops,
  */
 static AvbIOResult read_is_device_unlocked(AvbOps *ops, bool *out_is_unlocked)
 {
-#ifndef CONFIG_OPTEE_TA_AVB
-	/* For now we always return that the device is unlocked. */
-	debug("%s: device locking is not implemented\n", __func__);
-
-	*out_is_unlocked = true;
-
-	return AVB_IO_RESULT_OK;
-#else
+#if defined(CONFIG_OPTEE_TA_AVB) && defined(CONFIG_FASTBOOT_LOCKING)
+	/* Use AVB TA when both TA_AVB and fastboot locking are enabled */
 	AvbIOResult rc;
 	struct tee_param param = { .attr = TEE_PARAM_ATTR_TYPE_VALUE_OUTPUT };
 
+	debug("%s: reading device lock state via AVB TA\n", __func__);
 	rc = invoke_func(ops->user_data, TA_AVB_CMD_READ_LOCK_STATE, 1, &param);
-	if (rc)
-		return rc;
+	if (rc) {
+		debug("%s: AVB TA failed (rc=%d), falling back to environment\n", __func__, rc);
+		goto fallback_env;
+	}
 	*out_is_unlocked = !param.u.value.a;
+	debug("%s: AVB TA returned lock_state=%llu (unlocked=%d)\n",
+	      __func__, (unsigned long long)param.u.value.a, *out_is_unlocked);
+	return AVB_IO_RESULT_OK;
+
+fallback_env:
+#endif
+#ifdef CONFIG_FASTBOOT_LOCKING
+	/* Use environment variable when fastboot locking is enabled */
+	char *device_unlocked = env_get("device_unlocked");
+
+	debug("%s: reading device lock state via environment\n", __func__);
+	*out_is_unlocked = (device_unlocked && !strcmp(device_unlocked, "1"));
+	debug("%s: environment device_unlocked=%s (unlocked=%d)\n", __func__,
+	      device_unlocked ? device_unlocked : "NULL", *out_is_unlocked);
+	return AVB_IO_RESULT_OK;
+#else
+	/* For systems without fastboot locking, always return unlocked */
+	debug("%s: device locking is not implemented, returning unlocked\n", __func__);
+	*out_is_unlocked = true;
 	return AVB_IO_RESULT_OK;
 #endif
+}
+
+/**
+ * write_is_device_unlocked() - sets whether the device is unlocked
+ *
+ * @ops: contains AVB ops handlers
+ * @is_unlocked: device unlock state to set, true if unlocked,
+ *       false otherwise
+ *
+ * @return:
+ *       AVB_IO_RESULT_OK: state is set successfully
+ *       AVB_IO_RESULT_ERROR_IO: an error occurred
+ */
+AvbIOResult write_is_device_unlocked(AvbOps *ops, bool is_unlocked)
+{
+#ifdef CONFIG_OPTEE_TA_AVB
+	/* Use AVB TA when available */
+	AvbIOResult rc;
+	struct tee_param param = { .attr = TEE_PARAM_ATTR_TYPE_VALUE_INPUT };
+
+	debug("%s: setting device lock state via AVB TA (unlocked=%d)\n", __func__, is_unlocked);
+	/* TA expects lock state (opposite of unlock state) */
+	param.u.value.a = !is_unlocked;
+
+	rc = invoke_func(ops->user_data, TA_AVB_CMD_WRITE_LOCK_STATE, 1, &param);
+	if (rc != AVB_IO_RESULT_OK) {
+		debug("%s: AVB TA failed (rc=%d)\n", __func__, rc);
+		return rc;
+	}
+	debug("%s: AVB TA write successful\n", __func__);
+	return AVB_IO_RESULT_OK;
+#else
+	/* No AVB TA available */
+	debug("%s: AVB TA not available\n", __func__);
+	return AVB_IO_RESULT_ERROR_IO;
+#endif
+}
+
+/**
+ * avb_is_device_unlocked() - checks if device is unlocked using AVB TA or environment
+ *
+ * This function can be called without AVB operations and will use the AVB TA
+ * if available, otherwise fall back to environment variables.
+ *
+ * @return: true if device is unlocked, false if locked
+ */
+bool avb_is_device_unlocked(void)
+{
+#ifdef CONFIG_OPTEE_TA_AVB
+	/* Try to use AVB TA if available */
+	struct AvbOpsData *ops_data;
+	AvbIOResult rc;
+	struct tee_param param = { .attr = TEE_PARAM_ATTR_TYPE_VALUE_OUTPUT };
+	bool is_unlocked;
+
+	/* Try to get AVB ops data - this is a best effort attempt */
+	ops_data = (struct AvbOpsData *)avb_ops_alloc(0);
+	if (ops_data) {
+		debug("%s: reading device lock state via AVB TA\n", __func__);
+		rc = invoke_func(ops_data, TA_AVB_CMD_READ_LOCK_STATE, 1, &param);
+		if (rc == AVB_IO_RESULT_OK) {
+			is_unlocked = !param.u.value.a;
+			debug("%s: AVB TA returned lock_state=%llu (unlocked=%d)\n",
+			      __func__, (unsigned long long)param.u.value.a, is_unlocked);
+			avb_ops_free(&ops_data->ops);
+			return is_unlocked;
+		}
+		debug("%s: AVB TA failed (rc=%d)\n", __func__, rc);
+		avb_ops_free(&ops_data->ops);
+	}
+#endif
+
+	/* No AVB TA available or failed */
+	debug("%s: AVB TA not available, returning false (locked)\n", __func__);
+	return false;
+}
+
+/* Forward declarations for static functions used by critical lock functions */
+static AvbIOResult read_persistent_value(AvbOps *ops, const char *name,
+					 size_t buffer_size, u8 *out_buffer,
+					 size_t *out_num_bytes_read);
+static AvbIOResult write_persistent_value(AvbOps *ops, const char *name,
+					  size_t value_size, const u8 *value);
+
+/**
+ * write_is_device_critical_unlocked() - sets whether the device critical
+ * partitions are unlocked using AVB persistent values
+ *
+ * Uses a separate AVB persistent value "critical_unlocked" to manage critical lock state
+ * independently from the standard device lock state.
+ *
+ * @ops: contains AVB ops handlers
+ * @is_unlocked: device unlock state to write
+ *
+ * @return:
+ *      AVB_IO_RESULT_OK, on success
+ *      AVB_IO_RESULT_ERROR_*, on error
+ */
+AvbIOResult write_is_device_critical_unlocked(AvbOps *ops, bool is_unlocked)
+{
+	/* Use AVB persistent value for critical unlock state */
+	AvbIOResult rc;
+	u8 unlock_state = is_unlocked ? 1 : 0;
+
+	debug("%s: setting critical lock state via AVB persistent value (unlocked=%d)\n",
+	      __func__, is_unlocked);
+
+	rc = write_persistent_value(ops, "critical_unlocked", 1, &unlock_state);
+	if (rc != AVB_IO_RESULT_OK) {
+		debug("%s: AVB persistent value write failed (rc=%d)\n", __func__, rc);
+		return rc;
+	}
+	debug("%s: AVB persistent value write successful\n", __func__);
+	return AVB_IO_RESULT_OK;
+}
+
+/**
+ * avb_is_device_critical_unlocked() - checks if device critical partitions
+ * are unlocked using AVB persistent values
+ *
+ * Uses a separate AVB persistent value "critical_unlocked" to check critical lock state
+ * independently from the standard device lock state.
+ *
+ * @return: true if critical partitions are unlocked, false if locked
+ */
+bool avb_is_device_critical_unlocked(void)
+{
+	/* Use AVB persistent value for critical unlock state */
+	AvbOps *ops;
+	AvbIOResult rc;
+	u8 unlock_state = 0;
+	size_t num_bytes_read = 0;
+
+	ops = avb_ops_alloc(0);
+	if (!ops)
+		return false;  /* Default to locked if no AVB available */
+
+	debug("%s: reading critical lock state via AVB persistent value\n", __func__);
+	rc = read_persistent_value(ops, "critical_unlocked", 1, &unlock_state, &num_bytes_read);
+	if (rc != AVB_IO_RESULT_OK || num_bytes_read != 1) {
+		debug("%s: AVB persistent value read failed (rc=%d, bytes=%zu)\n",
+		      __func__, rc, num_bytes_read);
+		avb_ops_free(ops);
+		return false;  /* Default to locked if read fails */
+	}
+
+	bool unlocked = (unlock_state == 1);
+
+	debug("%s: AVB persistent value critical_unlocked=%u (unlocked=%d)\n",
+	      __func__, unlock_state, unlocked);
+	avb_ops_free(ops);
+	return unlocked;
 }
 
 /**
