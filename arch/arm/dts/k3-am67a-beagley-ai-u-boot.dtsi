@@ -37,18 +37,13 @@
 };
 
 &usbss0 {
-	bootph-all;
+	bootph-pre-ram;
 	status = "okay";
 };
 
 &usb0 {
-	usb-role-switch;
-
-	port {
-		usb0_hs_ep: endpoint {
-			remote-endpoint = <&usb_con_hs>;
-		};
-	};
+	dr_mode = "peripheral";
+	bootph-pre-ram;
 };
 
 &usbss1 {
