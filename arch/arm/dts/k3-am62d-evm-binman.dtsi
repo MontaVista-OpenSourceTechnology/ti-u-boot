@@ -174,7 +174,7 @@
 						keyfile = "custMpk.pem";
 					};
 					dm: ti-dm {
-						filename = "ti-dm/am62axx/ipc_echo_testb_mcu1_0_release_strip.xer5f";
+						filename = "ti-dm/am62dxx/ipc_echo_testb_mcu1_0_release_strip.xer5f";
 					};
 				};
 
@@ -287,7 +287,7 @@
 
 				dm {
 					ti-dm {
-						filename = "ti-dm/am62axx/ipc_echo_testb_mcu1_0_release_strip.xer5f";
+						filename = "ti-dm/am62dxx/ipc_echo_testb_mcu1_0_release_strip.xer5f";
 					};
 				};
 
