@@ -175,7 +175,7 @@ static void setup_serial(void)
 #endif
 #endif
 
-#ifdef CONFIG_BOARD_LATE_INIT
+#if CONFIG_IS_ENABLED(BOARD_LATE_INIT)
 int board_late_init(void)
 {
 	if (IS_ENABLED(CONFIG_TI_I2C_BOARD_DETECT)) {
