@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * This file was generated with the
- * AM62Px SysConfig DDR Configuration Tool for AM64x, AM625, AM623, AM62Ax, AM62Px, AM62Dx, AM62Lx v0.10.30
- * Fri Mar 14 2025 12:35:29 GMT+0530 (India Standard Time)
+ * AM62Px SysConfig DDR Configuration Tool for AM64x, AM625, AM623, AM62Ax, AM62Px, AM62Dx, AM62Lx v0.10.32
+ * Mon Oct 13 2025 12:15:33 GMT+0530 (India Standard Time)
  * DDR Type: LPDDR4
  * F0 = 50MHz    F1 = NA     F2 = 1600MHz
  * Density (per channel): 16Gb
@@ -14,6 +14,7 @@
 #define DDRSS_PLL_FREQUENCY_2 800000000
 #define DDRSS_SDRAM_IDX 17
 #define DDRSS_REGION_IDX 17
+#define DDRSS_TOOL_VERSION "0.10.32"
 
 #define DDRSS_CTL_0_DATA 0x00000B00
 #define DDRSS_CTL_1_DATA 0x00000000
