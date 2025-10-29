@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * This file was generated with the
- * AM62Ax SysConfig DDR Configuration Tool for AM64x, AM625, AM623, AM62Ax, AM62Px, AM62Dx, AM62Lx v0.10.30
- * Fri Mar 14 2025 14:18:23 GMT+0530 (India Standard Time)
+ * AM62Ax SysConfig DDR Configuration Tool for AM64x, AM625, AM623, AM62Ax, AM62Px, AM62Dx, AM62Lx v0.10.32
+ * Mon Oct 13 2025 12:13:51 GMT+0530 (India Standard Time)
  * DDR Type: LPDDR4
  * F0 = 50MHz    F1 = NA     F2 = 1866MHz
  * Density (per channel): 8Gb
@@ -14,6 +14,7 @@
 #define DDRSS_PLL_FREQUENCY_2 933000000
 #define DDRSS_SDRAM_IDX 16
 #define DDRSS_REGION_IDX 17
+#define DDRSS_TOOL_VERSION "0.10.32"
 
 #define DDRSS_CTL_0_DATA 0x00000B00
 #define DDRSS_CTL_1_DATA 0x00000000
@@ -405,9 +406,9 @@
 #define DDRSS_CTL_387_DATA 0x05020201
 #define DDRSS_CTL_388_DATA 0x0E081B1B
 #define DDRSS_CTL_389_DATA 0x0008040E
-#define DDRSS_CTL_390_DATA 0x0B0C0406
-#define DDRSS_CTL_391_DATA 0x0B0C0406
-#define DDRSS_CTL_392_DATA 0x0C0C0806
+#define DDRSS_CTL_390_DATA 0x0B120406
+#define DDRSS_CTL_391_DATA 0x0B120406
+#define DDRSS_CTL_392_DATA 0x12120806
 #define DDRSS_CTL_393_DATA 0x01000000
 #define DDRSS_CTL_394_DATA 0x07030701
 #define DDRSS_CTL_395_DATA 0x04000103
