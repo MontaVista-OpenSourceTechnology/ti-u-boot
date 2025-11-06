@@ -2,7 +2,7 @@
 /*
  * DDRSS: DDR 1-bit inline ECC test command
  *
- * Copyright (C) 2022 Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (C) 2025 Texas Instruments Incorporated - http://www.ti.com/
  */
 
 #include <asm/io.h>
@@ -16,7 +16,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define K3_DDRSS_MAX_ECC_REGIONS	3
 
+#if (IS_ENABLED(CONFIG_SOC_K3_J784S4) ||\
+	IS_ENABLED(CONFIG_SOC_K3_J721S2) ||\
+	IS_ENABLED(CONFIG_SOC_K3_J7200) ||\
+	IS_ENABLED(CONFIG_SOC_K3_J721E))
+#define DDRSS_BASE			0x2980000
+#else
 #define DDRSS_BASE			0x0f300000
+#endif
+
 #define DDRSS_V2A_CTL_REG		0x0020
 #define DDRSS_V2A_INT_RAW_REG		0x00a0
 #define DDRSS_V2A_INT_STAT_REG		0x00a4
@@ -88,9 +96,7 @@ static void ddrss_check_ecc_status(void)
 				ecc_1b_err_msk &= 0xf;
 				ecc_1b_err_adr <<= 4;
 				ecc_1b_err_adr += (fls(ecc_1b_err_msk) - 1) * 8;
-			}
-			if ((IS_ENABLED(CONFIG_SOC_K3_AM62A7)) ||
-			    (IS_ENABLED(CONFIG_SOC_K3_AM62P5))) {
+			} else {
 				/* AM62A/AM62P:
 				 * The address of the ecc error is 32-byte aligned.
 				 * Each bit in 8 bit mask represents 8 bytes ECC quanta
@@ -116,7 +122,7 @@ static void ddrss_check_ecc_status(void)
 		ddrss_write(DDRSS_V2A_INT_ECC2BERR, DDRSS_V2A_INT_STAT_REG);
 	}
 
-	/* multiple 1-bit errors (uncorrectable) in multpile words */
+	/* multiple 1-bit errors (uncorrectable) in multiple words */
 	if (v2a_int_raw & DDRSS_V2A_INT_ECCM1BERR) {
 		puts("\tECC test: DDR ECC multi 1-bit errors\n");
 		ddrss_write(DDRSS_V2A_INT_ECCM1BERR, DDRSS_V2A_INT_STAT_REG);
@@ -124,7 +130,7 @@ static void ddrss_check_ecc_status(void)
 }
 
 /* ddrss_memory_ecc_err()
- * Simulate an ECC error - change a 32b word at address in an ECC enabled
+ * Simulate an ECC error - change a 64b word at address in an ECC enabled
  * range. This removes the tested address from the ECC checks, changes a
  * word, and then restores the ECC range as configured by k3_ddrss in R5 SPL.
  */
@@ -147,17 +153,13 @@ static int ddrss_memory_ecc_err(u64 addr, u64 ecc_err, int range)
 
 	/* Calculate the end of the Rx ECC region up to the tested address */
 	ecc_temp_addr = (addr - gd->ram_base) >> 16;
-	if (ecc_temp_addr)
-		ecc_temp_addr--;
-	puts("\tECC test: Disabling DDR ECC ...\n");
-	/* Set the new range */
-	ddrss_write(ecc_temp_addr, DDRSS_ECC_Rx_END_ADDR_REG(range));
-	/* ECC is still on in a single block. The range is disabled if start > end */
-	if (ecc_temp_addr == ecc_start_addr)
-		ddrss_write(ecc_temp_addr + 1, DDRSS_ECC_Rx_STR_ADDR_REG(range));
 
-	/* Flip some bits, one bit preferably, but let's allow more */
-	addr &= ~3;
+	puts("\tECC test: Disabling DDR ECC ...\n");
+	/* Disable entire region */
+	ddrss_write(ecc_start_addr, DDRSS_ECC_Rx_END_ADDR_REG(range));
+	ddrss_write(ecc_end_addr, DDRSS_ECC_Rx_STR_ADDR_REG(range));
+
+	/* Inject error in the address */
 	val1 = readl((unsigned long long)addr);
 	val2 = val1 ^ ecc_err;
 	writel(val2, (unsigned long long)addr);
@@ -169,8 +171,7 @@ static int ddrss_memory_ecc_err(u64 addr, u64 ecc_err, int range)
 	/* Make sure the ECC range is restored before doing anything else */
 	mb();
 
-	printf("\tECC test: addr 0x%llx, read data 0x%llx, written data 0x%llx, "
-	       "err pattern: 0x%llx, read after write data 0x%llx\n",
+	printf("\tECC test: addr 0x%llx, read data 0x%llx, written data 0x%llx, err pattern: 0x%llx, read after write data 0x%llx\n",
 	       addr, val1, val2, ecc_err, val3);
 
 	puts("\tECC test: Enabled DDR ECC ...\n");
@@ -204,12 +205,12 @@ static int ddrss_is_ecc_enabled(void)
 			    DDRSS_ECC_CTRL_REG_ECC_CK));
 }
 
-static int do_ddrss_test(struct cmd_tbl *cmdtp, int flag, int argc,
-			 char *const argv[])
+static int do_ddr4_ecc_inject(struct cmd_tbl *cmdtp, int flag, int argc,
+			      char *const argv[])
 {
-	u64 start_addr, ecc_err;
+	u64 start_addr, ecc_err, range;
 
-	if (!(argc == 4 && (strncmp(argv[1], "ecc_err", 8) == 0)))
+	if (!(argc == 5 && (strncmp(argv[1], "ecc_err", 8) == 0)))
 		return cmd_usage(cmdtp);
 
 	if (!ddrss_is_ecc_enabled()) {
@@ -219,6 +220,12 @@ static int do_ddrss_test(struct cmd_tbl *cmdtp, int flag, int argc,
 
 	start_addr = simple_strtoul(argv[2], NULL, 16);
 	ecc_err = simple_strtoul(argv[3], NULL, 16);
+	range = simple_strtoul(argv[4], NULL, 16);
+
+	if (range < 0 || range > 2) {
+		puts("Range must be 0, 1 or 2\n");
+		return CMD_RET_FAILURE;
+	}
 
 	if (!((start_addr >= gd->bd->bi_dram[0].start &&
 	       (start_addr <= (gd->bd->bi_dram[0].start + gd->bd->bi_dram[0].size - 1))) ||
@@ -228,13 +235,17 @@ static int do_ddrss_test(struct cmd_tbl *cmdtp, int flag, int argc,
 		return CMD_RET_FAILURE;
 	}
 
-	ddrss_memory_ecc_err(start_addr, ecc_err, 0);
+	ddrss_memory_ecc_err(start_addr, ecc_err, range);
 	return 0;
 }
 
-U_BOOT_CMD(ddrss, 5, 1, do_ddrss_test,
-	   "DDRSS test",
-	   "ecc_err <addr in hex> <bit_err in hex> - generate bit errors\n"
-	   "	in DDR data at <addr>, the command will read a 32-bit data\n"
-	   "	from <addr>, and write (data ^ bit_err) back to <addr>\n"
+U_BOOT_CMD(ddr, 5, 1, do_ddr4_ecc_inject,
+	   "DDRSS Inline ECC Injection Tool",
+	   "ecc_err <addr in hex> <bit_err in hex> <range 0/1/2>\n"
+	   "    Generate bit errors in DDR data at <addr>, the command will read\n"
+	   "    a 64-bit data from <addr>, and write (data ^ bit_err) back to\n"
+	   "    <addr>. The ECC 1-bit error count is reported in the given range\n"
+	   "    0, 1, or 2 (if default full region ECC is enabled, choose 0).\n"
+	   "    Trying to inject a multiple-bit error or multiple single-bit\n"
+	   "    errors will result in a synchronous abort and is expected.\n"
 );
