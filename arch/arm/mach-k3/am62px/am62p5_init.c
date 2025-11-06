@@ -22,6 +22,29 @@ struct fwl_data cbass_main_fwls[] = {
 	{ "FSS_DAT_REG3", 7, 8 },
 };
 
+const struct k3_speed_grade_map am62p_map[] = {
+	{'O', 1000000000},
+	{'S', 1250000000},
+	{'T', 1250000000},
+	{'U', 1250000000},
+	{'V', 1250000000},
+	{/* List Terminator */ },
+};
+
+char k3_get_speed_grade(void)
+{
+	u32 efuse_val = readl(CTRLMMR_WKUP_JTAG_DEVICE_ID);
+	u32 efuse_speed = (efuse_val & JTAG_DEV_SPEED_MASK) >>
+			  JTAG_DEV_SPEED_SHIFT;
+
+	return ('A' - 1) + efuse_speed;
+}
+
+const struct k3_speed_grade_map *k3_get_speed_grade_map(void)
+{
+	return am62p_map;
+}
+
 /*
  * This uninitialized global variable would normal end up in the .bss section,
  * but the .bss is cleared between writing and reading this variable, so move
@@ -201,6 +224,7 @@ void board_init_f(ulong dummy)
 
 	setup_qos();
 
+	k3_fix_rproc_clock("/a53@0");
 	debug("am62px_init: %s done\n", __func__);
 }
 
