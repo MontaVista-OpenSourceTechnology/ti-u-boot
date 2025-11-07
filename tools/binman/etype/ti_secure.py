@@ -116,6 +116,7 @@ class Entry_ti_secure(Entry_x509_cert):
         if auth_in_place:
             self.firewall_cert_data['auth_in_place'] = auth_in_place
             self.ReadFirewallNode()
+        self.ReadLoadableCoreNode()
         self.sha = fdt_util.GetInt(self._node, 'sha', 512)
         self.req_dist_name = {'C': 'US',
                 'ST': 'TX',
@@ -125,6 +126,23 @@ class Entry_ti_secure(Entry_x509_cert):
                 'CN': 'TI Support',
                 'emailAddress': 'support@ti.com'}
         self.debug = fdt_util.GetBool(self._node, 'debug', False)
+
+    def ReadLoadableCoreNode(self):
+        boot_ext_props = ['proc_id', 'flags_set', 'flags_clr', 'reset_vector']
+        load_ext_props = ['dest_addr', 'auth_type']
+
+        self.boot_ext = self.ReadDictFromList(boot_ext_props)
+        self.load_ext = self.ReadDictFromList(load_ext_props)
+
+    def ReadDictFromList(self, props):
+        props_dict = dict.fromkeys(props)
+        for prop in props:
+            val = fdt_util.GetInt(self._node, prop)
+            if val is None:
+                return None
+            else:
+                props_dict[prop] = val
+        return props_dict
 
     def ReadFirewallNode(self):
         self.firewall_cert_data['certificate'] = ""
