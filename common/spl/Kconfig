@@ -1341,13 +1341,13 @@ config SPL_PCI_DFU
 
 if SPL_PCI_DFU
 
-config PCI_DFU_SPL_LOAD_FIT_ADDRESS
+config SPL_PCI_DFU_SPL_LOAD_FIT_ADDRESS
 	hex "Address to load FIT image when booting via DFU over PCIe"
 	help
 	  Specify the load address of the fit image that will be loaded
 	  by SPL via DFU over PCIe.
 
-config PCI_DFU_BAR_SIZE
+config SPL_PCI_DFU_BAR_SIZE
 	hex "BAR size to advertise for PCIe DFU"
 	default 0x800000
 	help
@@ -1355,7 +1355,7 @@ config PCI_DFU_BAR_SIZE
 	  Complex. The size should be large enough to fit the FIT image
 	  being downloaded via DFU over PCIe.
 
-config PCI_DFU_MAGIC_WORD
+config SPL_PCI_DFU_MAGIC_WORD
 	hex "Completion magic word for PCIe DFU boot"
 	default 0xdeadbeef
 	help
@@ -1364,18 +1364,18 @@ config PCI_DFU_MAGIC_WORD
 	  when using DFU over PCIe to download the image. Size of magic
 	  word should be 32-bit.
 
-config PCI_DFU_VENDOR_ID
+config SPL_PCI_DFU_VENDOR_ID
 	hex "PCI Vendor ID for PCI endpoint"
 	help
 	  PCI Vendor ID for endpoint device for DFU over PCIe. This should
 	  be set to your assigned 16-bit PCI Vendor ID.
 
-config PCI_DFU_DEVICE_ID
+config SPL_PCI_DFU_DEVICE_ID
 	hex "PCI Vendor ID for PCI endpoint"
 	help
 	  A 16-bit PCI Vendor ID for endpoint device for DFU over PCIe.
 
-config PCI_DFU_BOOT_PHASE
+config SPL_PCI_DFU_BOOT_PHASE
 	string "Current boot phase for PCI DFU boot"
 	help
 	  Specify the current boot phase when booting via DFU over PCIe.

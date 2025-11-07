@@ -25,7 +25,7 @@
  * in bytes.
  */
 #define MAGIC_WORD_SIZE 4
-#define BOOT_PHASE_STRING_SIZE 64
+#define BOOT_PHASE_STRING_SIZE 63
 
 static int run_dfu(int usb_index, char *interface, char *devstring)
 {
@@ -47,7 +47,7 @@ exit:
 static int dfu_over_pcie(void)
 {
 	u32 offset, magic_word;
-	void *addr;
+	volatile void *addr;
 	struct udevice *dev;
 	struct pci_bar bar;
 	struct pci_ep_header hdr;
@@ -61,10 +61,10 @@ static int dfu_over_pcie(void)
 		return -ENODEV;
 	}
 
-	printf("%s: Configuring PCIe endpoint\n", __func__);
-	hdr.deviceid = CONFIG_PCI_DFU_DEVICE_ID;
-	hdr.vendorid = CONFIG_PCI_DFU_VENDOR_ID;
+	hdr.deviceid = CONFIG_SPL_PCI_DFU_DEVICE_ID;
+	hdr.vendorid = CONFIG_SPL_PCI_DFU_VENDOR_ID;
 	hdr.baseclass_code = PCI_BASE_CLASS_MEMORY;
+	hdr.subclass_code = PCI_CLASS_MEMORY_RAM;
 
 	ret = pci_ep_write_header(dev, fn, &hdr);
 	if (ret) {
@@ -73,12 +73,12 @@ static int dfu_over_pcie(void)
 	}
 
 	bar.barno = BAR_0;
-	bar.phys_addr = (dma_addr_t)CONFIG_PCI_DFU_SPL_LOAD_FIT_ADDRESS;
+	bar.phys_addr = (dma_addr_t)CONFIG_SPL_PCI_DFU_SPL_LOAD_FIT_ADDRESS;
 	bar.flags = PCI_BASE_ADDRESS_SPACE_MEMORY |
 			  PCI_BASE_ADDRESS_MEM_TYPE_32 |
 			  PCI_BASE_ADDRESS_MEM_PREFETCH;
 
-	bar.size = CONFIG_PCI_DFU_BAR_SIZE;
+	bar.size = CONFIG_SPL_PCI_DFU_BAR_SIZE;
 
 	ret = pci_ep_set_bar(dev, fn, &bar);
 	if (ret) {
@@ -92,29 +92,27 @@ static int dfu_over_pcie(void)
 		return ret;
 	}
 
-	addr = (void *)CONFIG_PCI_DFU_SPL_LOAD_FIT_ADDRESS;
-	offset = CONFIG_PCI_DFU_BAR_SIZE - MAGIC_WORD_SIZE;
+	addr = (void *)CONFIG_SPL_PCI_DFU_SPL_LOAD_FIT_ADDRESS;
+	offset = CONFIG_SPL_PCI_DFU_BAR_SIZE - MAGIC_WORD_SIZE;
 
-	if (sizeof(CONFIG_PCI_DFU_BOOT_PHASE) > BOOT_PHASE_STRING_SIZE) {
-		pr_err("Boot phase string too long\n");
+	if (sizeof(CONFIG_SPL_PCI_DFU_BOOT_PHASE) > BOOT_PHASE_STRING_SIZE) {
+		pr_err("Not copying boot phase. String too long\n");
 	} else {
-		bootphase = (char *)(addr + CONFIG_PCI_DFU_BAR_SIZE -
-				  (BOOT_PHASE_STRING_SIZE + MAGIC_WORD_SIZE));
-		strncpy(bootphase, CONFIG_PCI_DFU_BOOT_PHASE,
-			sizeof(CONFIG_PCI_DFU_BOOT_PHASE));
-		bootphase[sizeof(CONFIG_PCI_DFU_BOOT_PHASE)] = '\0';
+		bootphase = (char *)(addr + CONFIG_SPL_PCI_DFU_BAR_SIZE -
+				  (BOOT_PHASE_STRING_SIZE + MAGIC_WORD_SIZE + 1));
+		strlcpy(bootphase, CONFIG_SPL_PCI_DFU_BOOT_PHASE,
+			sizeof(CONFIG_SPL_PCI_DFU_BOOT_PHASE) + 1);
 	}
 
 	addr = addr + offset;
-	magic_word = CONFIG_PCI_DFU_MAGIC_WORD;
+	magic_word = CONFIG_SPL_PCI_DFU_MAGIC_WORD;
 	(*(int *)addr) = 0;
-	printf("%s: Waiting for an image .....\n", __func__);
+	flush_dcache_all();
 	for (;;) {
 		if (*(int *)addr == magic_word)
 			break;
 		invalidate_dcache_all();
 	}
-	printf("Image loaded\n");
 
 	return 0;
 }
