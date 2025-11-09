@@ -104,6 +104,7 @@ struct am65_cpsw_port {
 	fdt_addr_t	macsl_base;
 	bool		disabled;
 	u32		mac_control;
+	bool		phy_configured;
 };
 
 struct am65_cpsw_common {
@@ -325,6 +326,7 @@ static int am65_cpsw_start(struct udevice *dev)
 	struct am65_cpsw_port *port = &common->ports[priv->port_id];
 	struct am65_cpsw_port *port0 = &common->ports[0];
 	struct ti_udma_drv_chan_cfg_data *dma_rx_cfg_data;
+	int skip_phy_config_env;
 	int ret, i;
 
 	if (common->started)
@@ -438,10 +440,30 @@ static int am65_cpsw_start(struct udevice *dev)
 		       port->port_sgmii_base + AM65_CPSW_SGMII_CONTROL_REG);
 	}
 
-	ret = phy_config(priv->phydev);
-	if (ret < 0) {
-		dev_err(dev, "phy_config failed: %d", ret);
-		goto err_dis_rx;
+	/*
+	 * Invoking phy_config() every time that am65_cpsw_start() is executed will
+	 * make the link robust. However, it delays every networking command such as
+	 * 'dhcp' and 'tftp'. For use-cases that prioritize speed over robustness,
+	 * phy_config() should be invoked only once. To support both use-cases,
+	 * sample the environment variable 'am65_cpsw_phy_config_once' to switch
+	 * between:
+	 * a) Invoke phy_config() every time - Default behavior for robustness
+	 * b) Invoke phy_config() once per driver probe - User configurable behavior
+	 *    for speed.
+	 */
+	skip_phy_config_env = env_get_yesno("am65_cpsw_phy_config_once");
+
+	/* If environment variable is not defined, assume it to be false. */
+	if (skip_phy_config_env == -1)
+		skip_phy_config_env = 0;
+
+	if (!port->phy_configured || !skip_phy_config_env) {
+		ret = phy_config(priv->phydev);
+		if (ret < 0) {
+			dev_err(dev, "phy_config failed: %d", ret);
+			goto err_dis_rx;
+		}
+		port->phy_configured = true;
 	}
 
 	ret = phy_startup(priv->phydev);
