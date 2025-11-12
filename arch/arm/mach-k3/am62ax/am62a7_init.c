@@ -357,6 +357,9 @@ static u32 __get_primary_bootmedia(u32 devstat)
 
 u32 spl_boot_device(void)
 {
+#if IS_ENABLED(CONFIG_SPL_OS_BOOT_SECURE) && !IS_ENABLED(CONFIG_ARM64)
+	return k3_r5_falcon_bootmode();
+#else
 	u32 devstat = readl(CTRLMMR_MAIN_DEVSTAT);
 	u32 bootmedia;
 
@@ -368,4 +371,5 @@ u32 spl_boot_device(void)
 	debug("am62a_init: %s: devstat = 0x%x bootmedia = 0x%x bootindex = %d\n",
 	       __func__, devstat, bootmedia, bootindex);
 	return bootmedia;
+#endif
 }

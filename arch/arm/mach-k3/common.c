@@ -651,15 +651,7 @@ static int k3_falcon_prep(void)
 	memset(&kernel_image, '\0', sizeof(kernel_image));
 	drv = ll_entry_start(struct spl_image_loader, spl_image_loader);
 	n_ents = ll_entry_count(struct spl_image_loader, spl_image_loader);
-	bootdev.boot_device = spl_boot_device();
-
-	/* Load payload from MMC instead of SPI due to it's limited size */
-	if (bootdev.boot_device == BOOT_DEVICE_SPI) {
-		if (strncmp(env_get("mmcdev"), "0", sizeof("0")) == 0)
-			bootdev.boot_device = BOOT_DEVICE_MMC1;
-		else
-			bootdev.boot_device = BOOT_DEVICE_MMC2;
-	}
+	bootdev.boot_device = k3_r5_falcon_bootmode();
 
 	for (loader = drv; loader != drv + n_ents; loader++) {
 		if (bootdev.boot_device != loader->boot_device)
