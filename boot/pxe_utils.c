@@ -477,17 +477,17 @@ static void label_boot_extension(struct pxe_context *ctx,
 		else
 			slash = "";
 
-		dir_len = strlen(label->fdtdir) + strlen(slash) + 1;
-		overlay_dir = calloc(1, len);
-		if (!overlay_dir)
-			return;
-
-		snprintf(overlay_dir, dir_len, "%s%s", label->fdtdir,
-			 slash);
+		dir_len = len + strlen(slash) + 1;
 	} else {
 		dir_len = 2;
-		snprintf(overlay_dir, dir_len, "/");
+		slash = "/";
 	}
+
+	overlay_dir = calloc(1, dir_len);
+	if (!overlay_dir)
+		return;
+
+	snprintf(overlay_dir, dir_len, "%s%s", label->fdtdir ?: "", slash);
 
 	alist_for_each(extension, extension_list) {
 		char *overlay_file;
