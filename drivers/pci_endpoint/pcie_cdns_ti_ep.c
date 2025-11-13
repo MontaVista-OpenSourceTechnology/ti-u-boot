@@ -402,6 +402,10 @@ static const struct pcie_cdns_ti_ep_data j721e_pcie_ep_data = {
 	.max_lanes = 2,
 };
 
+static const struct pcie_cdns_ti_ep_data j784s4_pcie_ep_data = {
+	.max_lanes = 4,
+};
+
 static const struct udevice_id pcie_cdns_ti_ep_ids[] = {
 	{
 		.compatible = "ti,am64-pcie-ep",
@@ -410,6 +414,10 @@ static const struct udevice_id pcie_cdns_ti_ep_ids[] = {
 	{
 		.compatible = "ti,j721e-pcie-ep",
 		.data = (ulong)&j721e_pcie_ep_data,
+	},
+	{
+		.compatible = "ti,j784s4-pcie-ep",
+		.data = (ulong)&j784s4_pcie_ep_data,
 	},
 	{},
 };
