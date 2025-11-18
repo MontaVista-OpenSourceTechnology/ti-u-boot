@@ -16,6 +16,10 @@
 #include <remoteproc.h>
 #include <elf.h>
 #include <cpu_func.h>
+#include <hang.h>
+#include <power-domain.h>
+#include <clk.h>
+#include <dm/read.h>
 
 #include "../common.h"
 
@@ -50,6 +54,11 @@ static const char *image_os_match[IMAGE_AMT] = {
 #endif
 
 static struct image_info fit_image_info[IMAGE_AMT];
+
+__weak int board_is_resuming(void)
+{
+	return 0;
+}
 
 void init_env(void)
 {
@@ -215,6 +224,45 @@ __weak int k3_mem_map_init(void)
 	return 0;
 }
 
+static void resume_rproc(void)
+{
+	struct power_domain rproc_pwrdmn;
+	unsigned long gtc_rate;
+	struct udevice *dev;
+	struct clk gtc_clk;
+	void *gtc_base;
+	int ret;
+
+	ret = uclass_get_device_by_seq(UCLASS_REMOTEPROC, 1, &dev);
+	if (ret)
+		panic("Unknown remote processor 1 (%d)\n", ret);
+
+	ret = power_domain_get_by_index(dev, &rproc_pwrdmn, 1);
+	if (ret)
+		panic("power_domain_get_rproc() failed: %d\n", ret);
+
+	ret = clk_get_by_index(dev, 0, &gtc_clk);
+	if (ret)
+		panic("clk_get failed: %d\n", ret);
+
+	gtc_base = dev_read_addr_ptr(dev);
+	if (!gtc_base)
+		panic("Get GTC address failed\n");
+
+	gtc_rate = clk_get_rate(&gtc_clk);
+
+#define GTC_CNTCR_REG	0x0
+#define GTC_CNTFID0_REG	0x20
+#define GTC_CNTR_EN	0x3
+	/* TFA expect the Global Timebase Counter to be set-up */
+	writel((u32)gtc_rate, gtc_base + GTC_CNTFID0_REG);
+	writel(GTC_CNTR_EN, gtc_base + GTC_CNTCR_REG);
+
+	ret = power_domain_on(&rproc_pwrdmn);
+	if (ret)
+		panic("power_domain_on failed: %d\n", ret);
+}
+
 void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 {
 	typedef void __noreturn (*image_entry_noargs_t)(void);
@@ -224,6 +272,31 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 
 	/* Release all the exclusive devices held by SPL before starting ATF */
 	ti_sci->ops.dev_ops.release_exclusive_devices();
+
+	if (board_is_resuming()) {
+		/*
+		 * TIFS minimal context restore
+		 * This restores also the firewall
+		 */
+		ret = ti_sci->ops.lpm_ops.restore_context(ti_sci, 0);
+		if (ret)
+			panic("TIFS min_context_restore failed (%d)\n", ret);
+
+		/*
+		 * Restore TFA in msmc memory
+		 */
+		ret = ti_sci->ops.lpm_ops.decrypt_tfa(ti_sci,
+						      CONFIG_K3_ATF_LOAD_ADDR);
+		if (ret)
+			panic("%s: TIFS failed to decrytp TFA : %x\n", __func__, ret);
+
+		/* restore TFA resume vectore address in main core */
+		ret = ti_sci->ops.lpm_ops.core_resume(ti_sci);
+		if (ret)
+			panic("ATF failed to resume (%d)\n", ret);
+
+		goto start_arm64;
+	}
 
 	ret = rproc_init();
 	if (ret)
@@ -300,9 +373,14 @@ start_arm64:
 	/* Add an extra newline to differentiate the ATF logs from SPL */
 	printf("Starting ATF on ARM64 core...\n\n");
 
-	ret = rproc_start(1);
-	if (ret)
-		panic("%s: ATF failed to start on rproc (%d)\n", __func__, ret);
+	if (!board_is_resuming()) {
+		ret = rproc_start(1);
+		if (ret)
+			panic("%s: ATF failed to start on rproc (%d)\n",
+			      __func__, ret);
+	} else {
+		resume_rproc();
+	}
 
 	if (shut_cpu) {
 		debug("Shutting down...\n");
