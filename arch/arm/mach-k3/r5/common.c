@@ -22,6 +22,7 @@
 #include <dm/read.h>
 
 #include "../common.h"
+#include "../common_fdt.h"
 
 #define PROC_BOOT_CTRL_RESET_FLAG_HSM_M4	0x00000001
 #define HSM_SRAM0_0_ADDR			0x43C00000
@@ -274,6 +275,21 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	ti_sci->ops.dev_ops.release_exclusive_devices();
 
 	if (board_is_resuming()) {
+		loadaddr = fit_image_info[IMAGE_ID_DM_FW].image_start;
+		if (!valid_elf_image(loadaddr))
+			panic("%s: DM-Firmware image is not valid, it cannot be loaded\n",
+			      __func__);
+		loadaddr = extract_shdr(".ctx_buffer", loadaddr, &size);
+		if (!loadaddr)
+			panic("Extract addr failed, %x\n", loadaddr);
+
+		ret = ti_sci->ops.lpm_ops.lpm_save_addr(ti_sci, loadaddr, size);
+		if (ret)
+			panic("TIFS lpm save addr fail : %x\n", ret);
+
+		loadaddr = fit_image_info[IMAGE_ID_DM_FW].image_start;
+		loadaddr = load_elf_image_phdr(loadaddr);
+
 		/*
 		 * TIFS minimal context restore
 		 * This restores also the firewall
@@ -316,7 +332,6 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 	else
 		printf("Successfully booted HSM core\n");
 #endif
-
 	/*
 	 * It is assumed that remoteproc device 1 is the corresponding
 	 * Cortex-A core which runs ATF. Make sure DT reflects the same.
@@ -363,8 +378,20 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 		loadaddr = load_elf_image_phdr(loadaddr);
 	} else {
 		loadaddr = fit_image_info[IMAGE_ID_DM_FW].image_start;
-		if (valid_elf_image(loadaddr))
+		if (valid_elf_image(loadaddr)) {
+#if IS_ENABLED(CONFIG_SOC_K3_J721E) || IS_ENABLED(CONFIG_SOC_K3_J784S4)
+			loadaddr = extract_shdr(".ctx_buffer", loadaddr, &size);
+			if (!loadaddr) {
+				pr_warn("Extract addr failed : %x\n", loadaddr);
+			} else {
+				ret = ti_sci->ops.lpm_ops.lpm_save_addr(ti_sci, loadaddr, size);
+				if (ret)
+					pr_err("TIFS lpm save addr fail\n");
+			}
+			loadaddr = fit_image_info[IMAGE_ID_DM_FW].image_start;
+#endif
 			loadaddr = load_elf_image_phdr(loadaddr);
+		}
 	}
 
 	debug("%s: jumping to address %x\n", __func__, loadaddr);
