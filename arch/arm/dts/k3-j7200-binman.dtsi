@@ -411,6 +411,10 @@
 					loadables = "tee", "dm", "spl";
 					fdt = "fdt-0";
 				};
+				conf-1 {
+					description = "k3-lpm";
+					loadables = "dm";
+				};
 			};
 		};
 	};
@@ -491,6 +495,10 @@
 					firmware = "atf";
 					loadables = "tee", "dm", "spl";
 					fdt = "fdt-1";
+				};
+				conf-2 {
+					description = "k3-lpm";
+					loadables = "dm";
 				};
 			};
 		};
