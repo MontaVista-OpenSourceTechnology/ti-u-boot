@@ -21,6 +21,7 @@
 #include <asm/arch/k3-ddr.h>
 #include <power/pmic.h>
 #include <wait_bit.h>
+#include <mach/k3-ddrss.h>
 #include "../common/fdt_ops.h"
 
 DECLARE_GLOBAL_DATA_PTR;

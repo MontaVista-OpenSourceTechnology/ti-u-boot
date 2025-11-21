@@ -301,6 +301,7 @@ void do_dt_magic(void)
 #define DDR_RET_CLK BIT(2)
 #define PMIC_NSLEEP_REG 0x86
 
+#if defined(CONFIG_K3_J721E_DDRSS)
 static void k3_deassert_DDR_RET(void)
 {
 	struct udevice *pmica;
@@ -334,6 +335,7 @@ static void k3_deassert_DDR_RET(void)
 
 	pmic_reg_write(pmica, PMIC_NSLEEP_REG, 0x3);
 }
+#endif
 
 void board_init_f(ulong dummy)
 {

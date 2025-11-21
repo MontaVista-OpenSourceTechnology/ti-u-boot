@@ -18,6 +18,7 @@
 #include <asm/arch/k3-ddr.h>
 #include <power/pmic.h>
 #include <wait_bit.h>
+#include <mach/k3-ddrss.h>
 
 #include "../common/board_detect.h"
 #include "../common/fdt_ops.h"
