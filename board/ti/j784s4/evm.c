@@ -101,7 +101,7 @@ static void __maybe_unused detect_enable_spinand(void *blob)
 #if defined(CONFIG_XPL_BUILD)
 void spl_perform_fixups(struct spl_image_info *spl_image)
 {
-#if IS_ENABLED(CONFIG_TARGET_J784S4_R5_EVM)
+#if (IS_ENABLED(CONFIG_TARGET_J784S4_R5_EVM) || IS_ENABLED(CONFIG_TARGET_J742S2_R5_EVM))
 	if (board_is_resuming())
 		return;
 #endif
@@ -115,7 +115,7 @@ void spl_perform_fixups(struct spl_image_info *spl_image)
 }
 #endif
 
-#if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) && IS_ENABLED(CONFIG_TARGET_J784S4_R5_EVM))
+#if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) && (IS_ENABLED(CONFIG_TARGET_J784S4_R5_EVM) || IS_ENABLED(CONFIG_TARGET_J742S2_R5_EVM)))
 int board_fit_config_name_match(const char *name)
 {
 	if (board_is_resuming())
