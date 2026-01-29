@@ -63,13 +63,14 @@ static inline int tps65941_get_chip_id(struct udevice *dev)
 
 static int tps65941_buck_enable(struct udevice *dev, int op, bool *enable)
 {
-	int ret;
+	int ret, idx;
 	unsigned int adr;
 	struct dm_regulator_uclass_plat *uc_pdata;
 
 	uc_pdata = dev_get_uclass_plat(dev);
 	adr = uc_pdata->ctrl_reg;
 
+	idx = dev->driver_data;
 	ret = pmic_reg_read(dev->parent, adr);
 	if (ret < 0)
 		return ret;
@@ -84,10 +85,16 @@ static int tps65941_buck_enable(struct udevice *dev, int op, bool *enable)
 
 		return 0;
 	} else if (op == PMIC_OP_SET) {
-		if (*enable)
+		if (*enable) {
 			ret |= TPS65941_BUCK_MODE_MASK;
-		else
+			/* Enable FPWM */
+			ret |= TPS65941_BUCK_FPWM_MASK;
+			/* If Multiphase enable FPWM_MP */
+			if (idx == 12 || idx == 123 || idx == 1234)
+				ret |= TPS65941_BUCK_FPWM_MP_MASK;
+		} else {
 			ret &= ~TPS65941_BUCK_MODE_MASK;
+		}
 		ret = pmic_reg_write(dev->parent, adr, ret);
 		if (ret)
 			return ret;
