@@ -6,7 +6,7 @@
 #include "k3-j784s4-j742s2-ddr.dtsi"
 
 &msmc0 {
-	memorycontroller2: memorycontroller@29d0000 {
+	memcontroller2: memorycontroller@29d0000 {
 		compatible = "ti,j721s2-ddrss";
 		reg = <0x0 0x029d0000 0x0 0x4000>,
 			  <0x0 0x0114000 0x0 0x100>,
@@ -2215,7 +2215,7 @@
 		>;
 	};
 
-	memorycontroller3: memorycontroller@29f0000 {
+	memcontroller3: memorycontroller@29f0000 {
 		compatible = "ti,j721s2-ddrss";
 		reg = <0x0 0x029f0000 0x0 0x4000>,
 			  <0x0 0x0114000 0x0 0x100>,

@@ -23,7 +23,7 @@
 
 		bootph-pre-ram;
 
-		memorycontroller0: memorycontroller@2990000 {
+		memcontroller0: memorycontroller@2990000 {
 			compatible = "ti,j721s2-ddrss";
 			reg = <0x0 0x02990000 0x0 0x4000>,
 			      <0x0 0x0114000 0x0 0x100>,
@@ -2232,7 +2232,7 @@
 			>;
 		};
 
-		memorycontroller1: memorycontroller@29b0000 {
+		memcontroller1: memorycontroller@29b0000 {
 			compatible = "ti,j721s2-ddrss";
 			reg = <0x0 0x029b0000 0x0 0x4000>,
 			      <0x0 0x0114000 0x0 0x100>,
