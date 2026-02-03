@@ -25,6 +25,15 @@
 #define AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_STAT			0x43018318
 #define AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_STAT_MW		0x555555
 
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL			0x43018300
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD		BIT(0)
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW			0x55555554
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK		GENMASK(31, 1)
+
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE			0x43018310
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW		0xDD555555
+#define K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK GENMASK(31, 0)
+
 #define K3_DDRSS_CFG_DENALI_CTL_20				0x0050
 #define K3_DDRSS_CFG_DENALI_CTL_20_PHY_INDEP_TRAIN_MODE		BIT(24)
 #define K3_DDRSS_CFG_DENALI_CTL_21				0x0054
@@ -53,6 +62,7 @@
 
 #define AM62XX_WKUP_CTRL_DDRSS_RETENTION_TIMEOUT_MS	5000
 #define K3_DDRSS_LPM_TIMEOUT_MS				5000
+#define K3_DDRSS_RETENTION_LATCH_CLR_TIMEOUT_MS 500
 
 static void k3_ddrss_reg_update_bits(void __iomem *addr, u32 offset, u32 mask, u32 set)
 {
@@ -155,6 +165,60 @@ void am62xx_ddrss_deassert_retention(void)
 				 0);
 }
 
+static void k3_ddrss_clear_retention_latch_and_magic_words(void)
+{
+	int ret;
+
+	k3_ddrss_reg_update_bits((void *)K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE,
+				 0,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW);
+
+	k3_ddrss_reg_update_bits((void *)K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+				 0,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK |
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW |
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD);
+
+	ret = wait_for_bit_32((void *)AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_STAT1,
+			      AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_STAT1_CANUART_IO_MODE,
+			      true, K3_DDRSS_RETENTION_LATCH_CLR_TIMEOUT_MS, false);
+	if (ret)
+		panic("Timeout during latch clearing sequence %d\n", ret);
+
+	k3_ddrss_reg_update_bits((void *)AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL,
+				 0,
+				 AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD |
+				 AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RETENTION_MASK,
+				 AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD);
+
+	k3_ddrss_reg_update_bits((void *)AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL,
+				 0,
+				 AM62XX_WKUP_CTRL_MMR0_DDR16SS_PMCTRL_DATA_RET_LD,
+				 0);
+
+	k3_ddrss_reg_update_bits((void *)K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+				 0,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_LD,
+				 0);
+	ret = wait_for_bit_32((void *)AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_STAT1,
+			      AM62XX_WKUP_CTRL_MMR_CANUART_WAKE_STAT1_CANUART_IO_MODE,
+			      false, K3_DDRSS_RETENTION_LATCH_CLR_TIMEOUT_MS, false);
+	if (ret)
+		panic("Timeout during latch clearing sequence %d\n", ret);
+
+	k3_ddrss_reg_update_bits((void *)K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE,
+				 0,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_OFF_MODE_MW_MASK,
+				 0);
+
+	k3_ddrss_reg_update_bits((void *)K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL,
+				 0,
+				 K3_WKUP_CTRL_MMR_CANUART_WAKE_CTRL_MW_MASK,
+				 0);
+}
+
 static bool am62xx_wkup_conf_canuart_wakeup_active(void)
 {
 	u32 active;
@@ -178,4 +242,17 @@ bool am62xx_wkup_conf_boot_is_resume(void)
 	return IS_ENABLED(CONFIG_K3_IODDR) &&
 		am62xx_wkup_conf_canuart_wakeup_active() &&
 		am62xx_wkup_conf_canuart_magic_word_set();
+}
+
+void k3_ddrss_run_retention_latch_clear_sequence(void)
+{
+	/*
+	 * Workaround of errata i12487
+	 * Errata states that During entry to the Deep Sleep or RTC+IO+DDR
+	 * low-power modes, SoC may not properly transition the attached
+	 * DDR into retention mode, which will lead to corruption of the DDR
+	 * data.
+	 */
+	if (IS_ENABLED(CONFIG_K3_IODDR))
+		k3_ddrss_clear_retention_latch_and_magic_words();
 }

@@ -888,6 +888,9 @@ static int k3_ddrss_probe(struct udevice *dev)
 	is_lpm_resume = ddrss_data->is_lpm_resume && ddrss_data->is_lpm_resume();
 	if (is_lpm_resume)
 		dev_info(dev, "Detected IO+DDR resume\n");
+	else
+		/* Clear the latch after any reset or partial I/O exit */
+		k3_ddrss_run_retention_latch_clear_sequence();
 
 	ddrss->dev = dev;
 	ret = k3_ddrss_power_on(ddrss);
