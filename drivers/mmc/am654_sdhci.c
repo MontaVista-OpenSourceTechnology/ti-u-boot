@@ -38,7 +38,7 @@
 #define OTAPDLYENA_SHIFT	20
 #define OTAPDLYENA_MASK		BIT(OTAPDLYENA_SHIFT)
 #define OTAPDLYSEL_SHIFT	12
-#define OTAPDLYSEL_MASK		GENMASK(15, 12)
+#define OTAPDLYSEL_MASK		GENMASK(16, 12)
 #define STRBSEL_SHIFT		24
 #define STRBSEL_4BIT_MASK	GENMASK(27, 24)
 #define STRBSEL_8BIT_MASK	GENMASK(31, 24)
@@ -98,8 +98,8 @@ struct am654_sdhci_plat {
 	u32 drv_strength;
 	u32 strb_sel;
 	u32 clkbuf_sel;
-	u32 flags;
 	bool dll_enable;
+	u32 flags;
 #define DLL_PRESENT	BIT(0)
 #define IOMUX_PRESENT	BIT(1)
 #define FREQSEL_2_BIT	BIT(2)
@@ -107,6 +107,7 @@ struct am654_sdhci_plat {
 #define DLL_CALIB	BIT(4)
 	u32 quirks;
 #define SDHCI_AM654_QUIRK_FORCE_CDTEST BIT(0)
+#define SDHCI_AM654_QUIRK_DDR52_LIMIT_40MHZ BIT(1)
 };
 
 struct timing_data {
@@ -163,6 +164,7 @@ static const struct timing_data td[] = {
 struct am654_driver_data {
 	const struct sdhci_ops *ops;
 	u32 flags;
+	u32 quirks;
 };
 
 static int am654_sdhci_setup_dll(struct am654_sdhci_plat *plat,
@@ -570,10 +572,25 @@ static int j721e_4bit_sdhci_set_ios_post(struct sdhci_host *host)
 	struct udevice *dev = host->mmc->dev;
 	struct am654_sdhci_plat *plat = dev_get_plat(dev);
 	int mode = host->mmc->selected_mode;
+	unsigned int speed = host->mmc->clock;
 	u32 otap_del_sel;
 	u32 itap_del_ena;
 	u32 itap_del_sel;
 	u32 mask, val;
+
+	/* Override speed for DDR52 mode */
+	if (mode == MMC_DDR_52) {
+		if ((plat->quirks & SDHCI_AM654_QUIRK_DDR52_LIMIT_40MHZ) && speed > 40000000)
+			speed = 40000000;
+
+		/* Reset SD Clock Enable */
+		val = sdhci_readw(host, SDHCI_CLOCK_CONTROL);
+		val &= ~SDHCI_CLOCK_CARD_EN;
+		sdhci_writew(host, val, SDHCI_CLOCK_CONTROL);
+
+		/* restart clock */
+		sdhci_set_clock(host->mmc, speed);
+	}
 
 	otap_del_sel = plat->otap_del_sel[mode];
 
@@ -622,6 +639,12 @@ static const struct am654_driver_data sdhci_am64_8bit_drvdata = {
 static const struct am654_driver_data sdhci_am64_4bit_drvdata = {
 	.ops = &j721e_4bit_sdhci_ops,
 	.flags = IOMUX_PRESENT,
+};
+
+static const struct am654_driver_data sdhci_am62_4bit_drvdata = {
+	.ops = &j721e_4bit_sdhci_ops,
+	.flags = IOMUX_PRESENT,
+	.quirks = SDHCI_AM654_QUIRK_DDR52_LIMIT_40MHZ,
 };
 
 const struct soc_attr am654_sdhci_soc_attr[] = {
@@ -791,6 +814,7 @@ static int am654_sdhci_bind(struct udevice *dev)
 	const struct am654_driver_data *soc_drv_data;
 
 	plat->flags = drv_data->flags;
+	plat->quirks = drv_data->quirks;
 
 	/* Update flags based on SoC revision */
 	soc = soc_device_match(am654_sdhci_soc_attr);
@@ -825,7 +849,7 @@ static const struct udevice_id am654_sdhci_ids[] = {
 	},
 	{
 		.compatible = "ti,am62-sdhci",
-		.data = (ulong)&sdhci_am64_4bit_drvdata,
+		.data = (ulong)&sdhci_am62_4bit_drvdata,
 	},
 	{ }
 };
