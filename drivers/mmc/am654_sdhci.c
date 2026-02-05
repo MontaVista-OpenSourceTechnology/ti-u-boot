@@ -108,6 +108,7 @@ struct am654_sdhci_plat {
 	u32 quirks;
 #define SDHCI_AM654_QUIRK_FORCE_CDTEST BIT(0)
 #define SDHCI_AM654_QUIRK_DDR52_LIMIT_40MHZ BIT(1)
+	u32 actual_mmc_clock;
 };
 
 struct timing_data {
@@ -181,7 +182,7 @@ static const struct freqsel_data freqsel_map[] = {
 };
 
 static int am654_sdhci_setup_dll(struct am654_sdhci_plat *plat,
-				 unsigned int speed)
+				 u32 speed)
 {
 	int sel50, sel100, freqsel;
 	u32 mask, val;
@@ -270,6 +271,35 @@ static void am654_sdhci_setup_delay_chain(struct am654_sdhci_plat *plat,
 				  plat->itap_del_ena[mode]);
 }
 
+static void am654_sdhci_set_clock(struct sdhci_host *host, u32 sdclk_frqsel)
+{
+	struct udevice *dev = host->mmc->dev;
+	struct am654_sdhci_plat *plat = dev_get_plat(dev);
+	int deviation;
+
+	host->clock = host->mmc->clock;
+
+	if (sdclk_frqsel != 0) {
+		if (sdclk_frqsel > (SDHCI_MAX_DIV_SPEC_300 >> 1))
+			dev_warn(dev, "Divider %u exceeds maximum\n", sdclk_frqsel);
+
+		plat->actual_mmc_clock = host->max_clk / (sdclk_frqsel * 2);
+	} else {
+		plat->actual_mmc_clock = host->max_clk;
+	}
+
+	if (host->mmc->clock > 0) {
+		deviation = (int)host->mmc->clock - (int)plat->actual_mmc_clock;
+		if (deviation < 0)
+			deviation = -deviation;
+
+		if (deviation > (int)(host->mmc->clock / 10)) {
+			dev_dbg(dev, "Clock deviation: requested %u Hz, actual %u Hz (sdclk_frqsel=%u)\n",
+				host->mmc->clock, plat->actual_mmc_clock, sdclk_frqsel);
+		}
+	}
+}
+
 static int am654_sdhci_set_ios_post(struct sdhci_host *host)
 {
 	struct udevice *dev = host->mmc->dev;
@@ -308,8 +338,9 @@ static int am654_sdhci_set_ios_post(struct sdhci_host *host)
 
 	regmap_update_bits(plat->base, PHY_CTRL4, mask, val);
 
-	if ((mode > UHS_SDR25 || mode == MMC_DDR_52) && speed >= CLOCK_TOO_SLOW_HZ) {
-		ret = am654_sdhci_setup_dll(plat, speed);
+	if ((mode > UHS_SDR25 || mode == MMC_DDR_52) && speed > CLOCK_TOO_SLOW_HZ &&
+	    plat->actual_mmc_clock >= CLOCK_TOO_SLOW_HZ) {
+		ret = am654_sdhci_setup_dll(plat, plat->actual_mmc_clock);
 		if (ret)
 			return ret;
 
@@ -560,6 +591,7 @@ const struct sdhci_ops am654_sdhci_ops = {
 #endif
 	.deferred_probe		= am654_sdhci_deferred_probe,
 	.set_ios_post		= &am654_sdhci_set_ios_post,
+	.set_clock		= &am654_sdhci_set_clock,
 	.set_control_reg	= am654_sdhci_set_control_reg,
 	.write_b		= am654_sdhci_write_b,
 };
