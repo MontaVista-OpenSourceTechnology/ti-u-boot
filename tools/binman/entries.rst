@@ -1938,6 +1938,29 @@ available. This is set by the `SetAllowMissing()` method, if
 
 
 
+.. _etype_signing_key_path:
+
+Entry: signing-key-path: Entry containing a signing key blob
+---------------------------------------------------------------
+
+Properties / Entry arguments:
+    - signing-key-path: Filename of file to read into entry. This typically
+        is <file_name>.pem or <file_name>.key
+
+This entry holds the private key file used for signing images.
+
+Typical usage of this is to provide the full path to the key file in
+SIGNING_KEY make argument during build. If this is not provided, the entry will
+fallback to using the key file specified in the binman node filename property::
+
+    binman {
+        signing-key-path {
+                filename = "default_key.pem";
+        };
+    };
+
+
+
 .. _etype_tee_os:
 
 Entry: tee-os: Entry containing an OP-TEE Trusted OS (TEE) blob

@@ -109,6 +109,7 @@ TI_BOARD_CONFIG_DATA  = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x
 TI_UNSECURE_DATA      = b'unsecuredata'
 IMX_LPDDR_IMEM_DATA   = b'qwertyuiop1234567890'
 IMX_LPDDR_DMEM_DATA   = b'asdfghjklzxcvbnm'
+SIGNING_KEY_DATA      = b'signingkey'
 
 # Subdirectory of the input dir to use to put test FDTs
 TEST_FDT_SUBDIR       = 'fdts'
@@ -238,6 +239,7 @@ class TestFunctional(unittest.TestCase):
         TestFunctional._MakeInputFile('rockchip-tpl.bin', ROCKCHIP_TPL_DATA)
         TestFunctional._MakeInputFile('ti_unsecure.bin', TI_UNSECURE_DATA)
         TestFunctional._MakeInputFile('capsule_input.bin', EFI_CAPSULE_DATA)
+        TestFunctional._MakeInputFile('signing_key.pem', SIGNING_KEY_DATA)
 
         # Add a few .dtb files for testing
         TestFunctional._MakeInputFile('%s/test-fdt1.dtb' % TEST_FDT_SUBDIR,
@@ -8110,6 +8112,11 @@ fdt         fdtmap                Extract the devicetree blob from the fdtmap
                       "Parent node is missing 'bootph-all' property")
         self.assertEqual(len(subnode4.props), 0,
                         "subnode shouldn't have any properties")
+
+    def testSigningKey(self):
+        """Test that signing key is correctly passed using signing-key property"""
+        data = self._DoReadFile('351_signing_key.dts')
+        self.assertEqual(SIGNING_KEY_DATA, data)
 
 if __name__ == "__main__":
     unittest.main()
