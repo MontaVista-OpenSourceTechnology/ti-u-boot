@@ -1982,6 +1982,7 @@ config USE_BOOTCOMMAND
 config BOOTCOMMAND
 	string "bootcmd value"
 	depends on USE_BOOTCOMMAND && !ENV_USE_DEFAULT_ENV_TEXT_FILE
+	default "run envboot; run bootcmd_ti_mmc; bootflow scan -lb" if ARCH_K3
 	default "bootflow scan -lb" if BOOTSTD_DEFAULTS && CMD_BOOTFLOW_FULL
 	default "bootflow scan" if BOOTSTD_DEFAULTS && !CMD_BOOTFLOW_FULL
 	default "run distro_bootcmd" if !BOOTSTD_BOOTCOMMAND && DISTRO_DEFAULTS
