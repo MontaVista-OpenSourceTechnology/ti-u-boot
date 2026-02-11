@@ -36,6 +36,9 @@ static const char *get_family_string(u32 idreg)
 	case JTAG_ID_PARTNO_AM62PX:
 		family = "AM62PX";
 		break;
+	case JTAG_ID_PARTNO_AM62LX:
+		family = "AM62LX";
+		break;
 	case JTAG_ID_PARTNO_AM64X:
 		family = "AM64X";
 		break;
@@ -72,6 +75,10 @@ static const char *get_family_string(u32 idreg)
 	return family;
 }
 
+static char *am62lx_rev_string_map[] = {
+	"1.0", "1.1",
+};
+
 static char *j721e_rev_string_map[] = {
 	"1.0", "1.1", "2.0",
 };
@@ -89,6 +96,10 @@ static const char *get_rev_string(u32 idreg)
 	soc = (idreg & JTAG_ID_PARTNO_MASK) >> JTAG_ID_PARTNO_SHIFT;
 
 	switch (soc) {
+	case JTAG_ID_PARTNO_AM62LX:
+		if (rev >= ARRAY_SIZE(am62lx_rev_string_map))
+			goto bail;
+		return am62lx_rev_string_map[rev];
 	case JTAG_ID_PARTNO_J721E:
 		if (rev >= ARRAY_SIZE(j721e_rev_string_map))
 			goto bail;
