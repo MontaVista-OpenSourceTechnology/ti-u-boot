@@ -16,6 +16,10 @@
 #include "am62a_hardware.h"
 #endif
 
+#ifdef CONFIG_SOC_K3_AM62L3
+#include "am62l_hardware.h"
+#endif
+
 #ifdef CONFIG_SOC_K3_AM62P5
 #include "am62p_hardware.h"
 #endif
