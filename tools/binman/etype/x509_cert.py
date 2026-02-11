@@ -41,6 +41,7 @@ class Entry_x509_cert(Entry_collection):
         self.num_comps = None
         self.sysfw_inner_cert_ext_boot_sequence_string = None
         self.dm_data_ext_boot_sequence_string = None
+        self.tee_ext_boot_sequence_string = None
         self.imagesize_sbl = None
         self.hashval_sbl = None
         self.load_addr_sysfw = None
@@ -51,6 +52,7 @@ class Entry_x509_cert(Entry_collection):
         self.hashval_sysfw_data = None
         self.sysfw_inner_cert_ext_boot_block = None
         self.dm_data_ext_boot_block = None
+        self.tee_ext_boot_block = None
         self.firewall_cert_data = None
         self.debug = False
 
@@ -134,6 +136,7 @@ class Entry_x509_cert(Entry_collection):
                 num_comps=self.num_comps,
                 sysfw_inner_cert_ext_boot_sequence_string=self.sysfw_inner_cert_ext_boot_sequence_string,
                 dm_data_ext_boot_sequence_string=self.dm_data_ext_boot_sequence_string,
+                tee_ext_boot_sequence_string=self.tee_ext_boot_sequence_string,
                 imagesize_sbl=self.imagesize_sbl,
                 hashval_sbl=self.hashval_sbl,
                 load_addr_sysfw=self.load_addr_sysfw,
@@ -144,6 +147,7 @@ class Entry_x509_cert(Entry_collection):
                 hashval_sysfw_data=self.hashval_sysfw_data,
                 sysfw_inner_cert_ext_boot_block=self.sysfw_inner_cert_ext_boot_block,
                 dm_data_ext_boot_block=self.dm_data_ext_boot_block,
+                tee_ext_boot_block=self.tee_ext_boot_block,
                 bootcore_opts=self.bootcore_opts,
                 debug=self.debug
             )
