@@ -1219,4 +1219,22 @@ int spl_reloc_prepare(struct spl_image_info *image, ulong *addrp);
  */
 int spl_reloc_jump(struct spl_image_info *image, spl_jump_to_image_t func);
 
+/* SPL MTD functions */
+/**
+ * spl_prepare_mtd() - Prepares the mtd for the corresponidng boot device
+ *
+ * @boot_device: A number indicating the BOOT_DEVICE type
+ */
+struct mtd_info *spl_prepare_mtd(uint boot_device);
+
+/**
+ * spl_mtd_load() - FIT Image loader
+ *
+ * @spl_image: SPL image to jump to
+ * @mtd: MTD device descriptor with geometry, flags, and read/write/erase function pointers
+ * @bootdev: boot device used by SPL
+ */
+int spl_mtd_load(struct spl_image_info *spl_image, struct mtd_info *mtd,
+		 struct spl_boot_device *bootdev);
+
 #endif
