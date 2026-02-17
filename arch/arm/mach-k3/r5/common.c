@@ -366,7 +366,9 @@ void board_fit_image_post_process(const void *fit, int node, void **p_image,
 		}
 	}
 
-	if (i < IMAGE_AMT && i > IMAGE_ID_DM_FW) {
+	if (i < IMAGE_AMT &&
+	    (i == IMAGE_ID_TIFSSTUB_HS || i == IMAGE_ID_TIFSSTUB_FS ||
+	     i == IMAGE_ID_TIFSSTUB_GP)) {
 		int device_type = get_device_type();
 
 		if ((device_type == K3_DEVICE_TYPE_HS_SE &&
