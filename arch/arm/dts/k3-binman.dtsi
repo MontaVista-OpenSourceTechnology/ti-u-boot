@@ -297,6 +297,26 @@
 					};
 				};
 
+#ifdef CONFIG_K3_HSM_FW
+				hsm {
+					description = "HSM binary";
+					type = "standalone";
+					compression = "none";
+					os = "hsm";
+
+					ti-secure {
+						content = <&hsm_fw>;
+						keyfile = "custMpk.pem";
+						proc_id = <0x80>;
+						flags_set = <0x04>;
+						flags_clr = <0x00>;
+						reset_vector = <0x00>;
+						dest_addr = <0x43C00000>;
+						auth_type = <0xFD00>;
+					};
+				};
+#endif
+
 				dm {
 					description = "DM binary";
 					type = "firmware";
