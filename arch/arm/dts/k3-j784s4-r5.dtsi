@@ -11,6 +11,7 @@
 	aliases {
 		remoteproc0 = &sysctrler;
 		remoteproc1 = &a72_0;
+		remoteproc2 = &hsm;
 	};
 
 	a72_0: a72@0 {
@@ -113,3 +114,6 @@
 	vdd-supply-2 = <&tps62873a>;
 };
 
+&hsm {
+	status = "okay";
+};

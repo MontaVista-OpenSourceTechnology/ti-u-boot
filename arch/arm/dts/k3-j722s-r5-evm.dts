@@ -14,6 +14,7 @@
 	aliases {
 		remoteproc0 = &sysctrler;
 		remoteproc1 = &a53_0;
+		remoteproc2 = &hsm;
 		serial0 = &wkup_uart0;
 		serial2 = &main_uart0;
 	};
@@ -101,4 +102,8 @@
 
 &main_pktdma {
 	ti,sci = <&dm_tifs>;
+};
+
+&hsm {
+	status = "okay";
 };
