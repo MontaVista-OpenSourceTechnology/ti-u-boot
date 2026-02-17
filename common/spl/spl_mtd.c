@@ -62,7 +62,7 @@ int spl_mtd_load(struct spl_image_info *spl_image,
 	err = mtd_read(mtd, spl_mtd_get_uboot_offs(), sizeof(*header),
 		       &ret_len, (void *)header);
 	if (err)
-		return err;
+		goto out_err;
 
 	if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) &&
 	    image_get_magic(header) == FDT_MAGIC) {
@@ -70,21 +70,22 @@ int spl_mtd_load(struct spl_image_info *spl_image,
 		load.priv = mtd;
 		load.bl_len = 1;
 		load.read = spl_mtd_fit_read;
-		return spl_load_simple_fit(spl_image, &load,
-					   spl_mtd_get_uboot_offs(), header);
+		err = spl_load_simple_fit(spl_image, &load,
+					  spl_mtd_get_uboot_offs(), header);
 	} else if (IS_ENABLED(CONFIG_SPL_LOAD_IMX_CONTAINER)) {
 		load.priv = mtd;
 		load.bl_len = 1;
 		load.read = spl_mtd_fit_read;
-		return spl_load_imx_container(spl_image, &load,
-					      spl_mtd_get_uboot_offs());
+		err = spl_load_imx_container(spl_image, &load,
+					     spl_mtd_get_uboot_offs());
 	} else {
 		err = spl_parse_image_header(spl_image, bootdev, header);
 		if (err)
-			return err;
-		return mtd_read(mtd, spl_mtd_get_uboot_offs(), spl_image->size,
-				&ret_len, (void *)(ulong)spl_image->load_addr);
+			goto out_err;
+		err = mtd_read(mtd, spl_mtd_get_uboot_offs(), spl_image->size,
+			       &ret_len, (void *)(ulong)spl_image->load_addr);
 	}
 
-	return -EINVAL;
+out_err:
+	return err;
 }

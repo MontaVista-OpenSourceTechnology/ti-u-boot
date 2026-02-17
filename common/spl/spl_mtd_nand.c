@@ -16,16 +16,20 @@ static int spl_mtd_load_image(struct spl_image_info *spl_image,
 			      struct spl_boot_device *bootdev)
 {
 	struct mtd_info *mtd;
-	int ret;
+	int err;
 
 	mtd = spl_prepare_mtd(BOOT_DEVICE_SPINAND);
 	if (IS_ERR_OR_NULL(mtd)) {
 		printf("MTD device %s not found, ret %ld\n", "spi-nand",
 		       PTR_ERR(mtd));
-		return -EINVAL;
+		err = PTR_ERR(mtd);
+		goto remove_mtd_device;
 	}
 
-	return spl_mtd_load(spl_image, mtd, bootdev);
+	err = spl_mtd_load(spl_image, mtd, bootdev);
+remove_mtd_device:
+	mtd_remove(mtd);
+	return err;
 }
 
 SPL_LOAD_IMAGE_METHOD("SPINAND", 0, BOOT_DEVICE_SPINAND, spl_mtd_load_image);
