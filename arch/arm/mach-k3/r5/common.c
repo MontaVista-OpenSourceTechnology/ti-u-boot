@@ -328,12 +328,15 @@ void board_fit_image_post_process(const void *fit, int node, void **p_image,
 				  size_t *p_size)
 {
 	int len;
-	int i;
+	int i, ret;
 	const char *os;
-	u32 addr;
+	u32 addr, load_addr;
+	const void *fit_image_loadaddr;
+	size_t fit_image_size;
 
 	os = fdt_getprop(fit, node, "os", &len);
 	addr = fdt_getprop_u32_default_node(fit, node, 0, "entry", -1);
+	load_addr = fdt_getprop_u32_default_node(fit, node, 0, "load", -1);
 
 	debug("%s: processing image: addr=%x, size=%d, os=%s\n", __func__,
 	      addr, *p_size, os);
@@ -342,6 +345,22 @@ void board_fit_image_post_process(const void *fit, int node, void **p_image,
 		if (!strcmp(os, image_os_match[i])) {
 			fit_image_info[i].image_start = addr;
 			fit_image_info[i].image_len = *p_size;
+			/*
+			 * If the 'load' property is missing in the FIT image,
+			 * fall back to using the actual in-memory address of
+			 * the FIT image data.
+			 */
+			if (load_addr == -1) {
+				ret = fit_image_get_data(fit, node,
+							 &fit_image_loadaddr,
+							 &fit_image_size);
+				if (ret < 0)
+					panic("Error accessing node os = %s in FIT (%d)\n",
+					      os, ret);
+				fit_image_info[i].load = (ulong)fit_image_loadaddr;
+			} else {
+				fit_image_info[i].load = load_addr;
+			}
 			debug("%s: matched image for ID %d\n", __func__, i);
 			break;
 		}
