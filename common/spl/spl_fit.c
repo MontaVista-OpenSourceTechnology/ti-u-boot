@@ -803,6 +803,8 @@ int spl_load_simple_fit(struct spl_image_info *spl_image,
 {
 	struct spl_image_info image_info;
 	struct spl_fit_info ctx;
+	const void *fit_image_loadaddr;
+	size_t fit_image_size;
 	int node = -1;
 	int ret;
 	int index = 0;
@@ -893,7 +895,19 @@ int spl_load_simple_fit(struct spl_image_info *spl_image,
 		if (firmware_node == node)
 			continue;
 
-		image_info.load_addr = 0;
+		/*
+		 * If the 'load' property is not present in the image node,
+		 * use the FIT image's data address as the fallback load
+		 * address. This allows flexibility in omitting the load address
+		 * during FIT creation time.
+		 */
+		ret = fit_image_get_data(ctx.fit, node,
+					 &fit_image_loadaddr, &fit_image_size);
+		if (ret < 0)
+			panic("Error accessing node = %d in FIT (%d)\n", node,
+			      ret);
+
+		image_info.load_addr = (ulong)fit_image_loadaddr;
 		ret = load_simple_fit(info, offset, &ctx, node, &image_info);
 		if (ret < 0 && ret != -EBADSLT) {
 			printf("%s: can't load image loadables index %d (ret = %d)\n",
