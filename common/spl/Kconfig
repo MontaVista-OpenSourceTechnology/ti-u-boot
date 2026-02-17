@@ -1068,6 +1068,14 @@ config SPL_RELOC_LOADER
 	  to temporary memory, then copying it into place afterwards, then
 	  jumping to it.
 
+config SPL_NAND_SPI_SUPPORT
+	bool "Support loading from SPI NAND flash"
+	depends on SPL_MTD_LOAD
+	help
+	  Enable support for SPI NAND flash devices in SPL boot flow.
+	  When enabled, SPL can load U-Boot from SPI NAND using the MTD
+	  subsystem.
+
 config SPL_UBI
 	bool "Support UBI"
 	help
