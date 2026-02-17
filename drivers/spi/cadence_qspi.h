@@ -262,6 +262,7 @@ struct cadence_spi_priv {
 	bool		is_decoded_cs;
 	bool		use_dac_mode;
 	bool		is_dma;
+	bool		wr_completion;
 
 	/* Transaction protocol parameters. */
 	u8		inst_width;

@@ -29,6 +29,7 @@
 
 /* Quirks */
 #define CQSPI_DISABLE_STIG_MODE		BIT(0)
+#define CQSPI_NO_SUPPORT_WR_COMPLETION	BIT(2)
 
 __weak int cadence_qspi_apb_dma_read(struct cadence_spi_priv *priv,
 				     const struct spi_mem_op *op)
@@ -226,6 +227,12 @@ static int cadence_spi_probe(struct udevice *bus)
 	priv->tchsh_ns		= plat->tchsh_ns;
 	priv->tslch_ns		= plat->tslch_ns;
 	priv->quirks		= plat->quirks;
+
+	/* write completion is supported by default */
+	priv->wr_completion = true;
+
+	if (priv->quirks & CQSPI_NO_SUPPORT_WR_COMPLETION)
+		priv->wr_completion = false;
 
 	if (IS_ENABLED(CONFIG_ZYNQMP_FIRMWARE))
 		xilinx_pm_request(PM_REQUEST_NODE, PM_DEV_OSPI,
