@@ -28,6 +28,7 @@ enum {
 	IMAGE_ID_TIFSSTUB_HS,
 	IMAGE_ID_TIFSSTUB_FS,
 	IMAGE_ID_TIFSSTUB_GP,
+	IMAGE_ID_HSM,
 	IMAGE_AMT,
 };
 
@@ -40,6 +41,7 @@ static const char *image_os_match[IMAGE_AMT] = {
 	"tifsstub-hs",
 	"tifsstub-fs",
 	"tifsstub-gp",
+	"hsm",
 };
 #endif
 
@@ -156,6 +158,20 @@ void __noreturn jump_to_image(struct spl_image_info *spl_image)
 	if (!fit_image_info[IMAGE_ID_DM_FW].image_start) {
 		size = load_firmware("name_mcur5f0_0fw", "addr_mcur5f0_0load",
 				     &loadaddr);
+	}
+
+	if (IS_ENABLED(CONFIG_REMOTEPROC_TI_K3_HSM_M4F)) {
+		ret = rproc_load(2, fit_image_info[IMAGE_ID_HSM].load,
+				 fit_image_info[IMAGE_ID_HSM].image_len);
+		if (ret) {
+			panic("Error while loading HSM firmware, ret = %d\n", ret);
+		} else {
+			ret = rproc_start(2);
+			if (ret)
+				panic("Error while starting HSM core\n");
+			else
+				printf("Successfully loaded and started HSM core\n");
+		}
 	}
 
 	/*
