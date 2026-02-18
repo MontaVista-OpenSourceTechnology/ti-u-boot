@@ -10,3 +10,7 @@
 		mmc1 = &sdhci1;
 	};
 };
+
+&scmi {
+	bootph-all;
+};
