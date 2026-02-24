@@ -452,7 +452,11 @@ static int cadence_spi_of_to_plat(struct udevice *bus)
 
 	const struct cqspi_driver_platdata *drvdata =
 		(struct cqspi_driver_platdata *)dev_get_driver_data(bus);
-	plat->quirks = drvdata->quirks;
+
+	if (drvdata)
+		plat->quirks = drvdata->quirks;
+	else
+		debug("%s: no driver data, quirks not set\n", __func__);
 
 	debug("%s: regbase=%p ahbbase=%p max-frequency=%d page-size=%d\n",
 	      __func__, plat->regbase, plat->ahbbase, plat->max_hz,
