@@ -548,7 +548,7 @@ int bloblist_init(void)
 			ret = bloblist_check(addr, size);
 
 		if (ret)
-			log_warning("Bloblist at %lx not found (err=%d)\n",
+			log_debug("Bloblist at %lx not found (err=%d)\n",
 				    addr, ret);
 		else
 			/* Get the real size */
