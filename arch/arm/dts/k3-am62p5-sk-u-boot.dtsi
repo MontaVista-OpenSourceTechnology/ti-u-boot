@@ -186,3 +186,9 @@
 &wkup_r5fss0_core0 {
 	bootph-pre-ram;
 };
+
+&ospi0 {
+	flash@0 {
+		spi-max-frequency = <25000000>;
+	};
+};

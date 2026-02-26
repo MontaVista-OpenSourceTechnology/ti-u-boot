@@ -124,5 +124,6 @@
 
 	flash@0 {
 		bootph-all;
+		spi-max-frequency = <25000000>;
 	};
 };
