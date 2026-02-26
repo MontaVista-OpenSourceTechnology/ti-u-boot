@@ -11,6 +11,10 @@
 #include "k3-j721s2-common-proc-board-u-boot.dtsi"
 #include "k3-j721s2-r5.dtsi"
 
+&ospi0_nand {
+	status = "okay";
+};
+
 &tps659411 {
 	bootph-pre-ram;
 	esm: esm {
