@@ -45,6 +45,15 @@
 #define NB_THREADMAP_BIT1				BIT(1)
 #define NB_THREADMAP_BIT2				BIT(2)
 
+/*
+ * RAT mapping for errata ID: i2437
+ */
+#define RAT_ERRATA_2437_BASE_REGION0		0x40f90000
+#define RAT_ERRATA_2437_IN_ADDR			0xc0000000
+#define RAT_ERRATA_2437_OUT_ADDR_U		0x0000004d
+#define RAT_ERRATA_2437_OUT_ADDR_L		0x21000000
+#define RAT_ERRATA_2437_CTRL			0x80000010
+
 struct fwl_data infra_cbass0_fwls[] = {
 	{ "PSC0", 5, 1 },
 	{ "PLL_CTRL0", 6, 1 },
@@ -322,6 +331,36 @@ void board_init_f(ulong dummy)
 		setup_navss_nb();
 
 	setup_qos();
+
+	if (IS_ENABLED(CONFIG_CPU_V7R)) {
+		/*
+		 * Errata ID i2437 SE Clock-Gating Turning Off Too Early
+		 *
+		 * A hardware bug is present in the C7120 Streaming Engine top level
+		 * clock gating logic thatcan lead to the C7120 CPU hanging.
+
+		 * Workaround: The DSP_<COREID>_DEBUG_CLKEN_OVERRIDE fields of the
+		 * COMPUTE_CLUSTER_CFG_WRAP_0_CC_CNTRL register (where COREID is the
+		 * name of the specific C7120 core) must be enabled before power-up
+		 * of the C7120 core to override all clock-gating.
+		 */
+
+		/* Setup RAT mapping */
+		debug("Errata i2437: Use RAT for COMPUTE_CLUSTER_CFG_WRAP_0_CC_CNTRL register\n");
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x24) = RAT_ERRATA_2437_IN_ADDR;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x28) = RAT_ERRATA_2437_OUT_ADDR_L;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x2c) = RAT_ERRATA_2437_OUT_ADDR_U;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x20) = RAT_ERRATA_2437_CTRL;
+
+		/* Enable DSP_X_DEBUG_CLKEN_OVERRIDE for C71x cores */
+		*(unsigned int *)(RAT_ERRATA_2437_IN_ADDR + 0x200) = 0x00000F00;
+
+		/* Clear RAT mapping */
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x20) = 0x0;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x24) = 0x0;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x28) = 0x0;
+		*(unsigned int *)(RAT_ERRATA_2437_BASE_REGION0 + 0x2c) = 0x0;
+	}
 }
 
 u32 spl_mmc_boot_mode(struct mmc *mmc, const u32 boot_device)
