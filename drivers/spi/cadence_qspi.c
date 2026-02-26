@@ -888,6 +888,7 @@ static int cadence_spi_probe(struct udevice *bus)
 	priv->fifo_width	= plat->fifo_width;
 	priv->trigger_address	= plat->trigger_address;
 	priv->read_delay	= plat->read_delay;
+	priv->phase_detect_selector = plat->phase_detect_selector;
 	priv->phy_pattern_start = plat->phy_pattern_start;
 	priv->phy_tx_start	= plat->phy_tx_start;
 	priv->phy_tx_end	= plat->phy_tx_end;
@@ -1084,6 +1085,13 @@ static int cadence_spi_mem_do_calibration(struct spi_slave *spi,
 
 	priv->phy_read_op = *op;
 
+	if (priv->phase_detect_selector >
+	    CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LEN) {
+		dev_warn(bus,
+			 "Phase Detect Selector should be in between [0, 7]. Skipping Calibration\n");
+		return 0;
+	}
+
 	ret = cadence_spi_phy_check_pattern(priv, spi);
 	if (ret) {
 		dev_dbg(bus, "Pattern not found. Skipping calibration\n");
@@ -1166,6 +1174,9 @@ static int cadence_spi_of_to_plat(struct udevice *bus)
 	plat->trigger_address = dev_read_u32_default(bus,
 						     "cdns,trigger-address",
 						     0);
+	plat->phase_detect_selector = dev_read_u32_default(bus,
+							   "cdns,phase-detect-selector",
+							   CQSPI_REG_PHY_DLL_MASTER_DLY_ELMTS_LEN + 1);
 	/* Use DAC mode only when MMIO window is at least 8M wide */
 	if (plat->ahbsize >= SZ_8M)
 		priv->use_dac_mode = true;
