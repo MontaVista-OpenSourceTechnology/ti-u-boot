@@ -84,8 +84,6 @@ static void k3_spl_init(void)
 	 */
 	store_boot_info_from_rom();
 
-	ctrl_mmr_unlock();
-
 	/* Init DM early */
 	ret = spl_early_init();
 	if (ret)
@@ -150,6 +148,8 @@ static void k3_spl_init(void)
 
 	/* Output System Firmware version info */
 	k3_sysfw_print_ver();
+
+	ctrl_mmr_unlock();
 
 	/* Output DM Firmware version info */
 	if (IS_ENABLED(CONFIG_ARM64))
