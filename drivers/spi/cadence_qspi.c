@@ -217,6 +217,7 @@ static int cadence_spi_probe(struct udevice *bus)
 	priv->fifo_width	= plat->fifo_width;
 	priv->trigger_address	= plat->trigger_address;
 	priv->read_delay	= plat->read_delay;
+	priv->phy_pattern_start = plat->phy_pattern_start;
 	priv->ahbsize		= plat->ahbsize;
 	priv->max_hz		= plat->max_hz;
 
@@ -406,6 +407,8 @@ static int cadence_spi_of_to_plat(struct udevice *bus)
 	struct cadence_spi_plat *plat = dev_get_plat(bus);
 	struct cadence_spi_priv *priv = dev_get_priv(bus);
 	ofnode subnode;
+	const char *label;
+	u32 start;
 
 	plat->regbase = devfdt_get_addr_index_ptr(bus, 0);
 	plat->ahbbase = devfdt_get_addr_size_index_ptr(bus, 1, &plat->ahbsize);
@@ -457,6 +460,18 @@ static int cadence_spi_of_to_plat(struct udevice *bus)
 		plat->quirks = drvdata->quirks;
 	else
 		debug("%s: no driver data, quirks not set\n", __func__);
+
+	/* Find the PHY tuning pattern partition. */
+	subnode = ofnode_first_subnode(subnode);
+	while (ofnode_valid(subnode)) {
+		label = ofnode_read_string(subnode, "label");
+		if (label && strcmp(label, "ospi.phypattern") == 0) {
+			if (!ofnode_read_u32_array(subnode, "reg", &start, 1))
+				plat->phy_pattern_start = start;
+			break;
+		}
+		subnode = ofnode_next_subnode(subnode);
+	}
 
 	debug("%s: regbase=%p ahbbase=%p max-frequency=%d page-size=%d\n",
 	      __func__, plat->regbase, plat->ahbbase, plat->max_hz,
