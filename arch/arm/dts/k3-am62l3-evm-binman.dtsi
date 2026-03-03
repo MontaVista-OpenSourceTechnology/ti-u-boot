@@ -18,6 +18,22 @@
 		};
 	};
 
+	custMpk-crt {
+		filename = "custMpk.crt";
+
+		custmpk_crt: blob-ext {
+			filename = "arch/arm/mach-k3/keys/custMpk.crt";
+		};
+	};
+
+	custMpk-key {
+		filename = "custMpk.key";
+
+		custmpk_key: blob-ext {
+			filename = "arch/arm/mach-k3/keys/custMpk.key";
+		};
+	};
+
 	board-cfg {
 		filename = "board-cfg.bin";
 
@@ -94,7 +110,7 @@
 		filename = "tispl.bin";
 
 		ti-secure-rom {
-			content = <&atf>, <&tifs_enc2>, <&tifs_data2>, 
+			content = <&atf>, <&tifs_enc2>, <&tifs_data2>,
 				  <&tifs_cert2>, <&tee>, <&spl>;
 			combined;
 			sysfw-inner-cert;
@@ -135,8 +151,15 @@
 		tee: tee-os {
 		};
 
-		spl: u-boot-spl {
-			no-expanded;
+		spl: section {
+			u-boot-spl-nodtb {
+			};
+
+			u-boot-spl-pubkey-dtb {
+				algo = "sha512,rsa4096";
+				required = "conf";
+				key-name-hint = "custMpk";
+			};
 		};
 
 	};
@@ -147,6 +170,7 @@
 
 		fit {
 			description = "U-Boot fitImage for AM62Lx SK";
+			fit,sign;
 
 			images {
 				uboot {
@@ -162,7 +186,7 @@
 					};
 
 					hash {
-						algo = "crc32";
+						algo = "sha512";
 					};
 				};
 
@@ -177,7 +201,7 @@
 					};
 
 					hash {
-						algo = "crc32";
+						algo = "sha512";
 					};
 				};
 			};
@@ -190,6 +214,12 @@
 					firmware = "uboot";
 					loadables = "uboot";
 					fdt = "fdt-0";
+
+					signature {
+						algo = "sha512,rsa4096";
+						key-name-hint = "custMpk";
+						sign-images = "firmware", "loadables", "fdt";
+					};
 				};
 
 			};
