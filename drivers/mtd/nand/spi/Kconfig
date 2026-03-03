@@ -5,3 +5,111 @@ menuconfig MTD_SPI_NAND
 	select SPI_MEM
 	help
 	  This is the framework for the SPI NAND device drivers.
+
+if MTD_SPI_NAND
+
+config MTD_SPI_NAND_ALLIANCEMEMORY
+	bool "Alliance Memory SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Alliance Memory SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses an Alliance Memory device, to reduce code size.
+
+config MTD_SPI_NAND_ATO
+	bool "ATO SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for ATO SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses an ATO device, to reduce code size.
+
+config MTD_SPI_NAND_ESMT
+	bool "ESMT SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for ESMT SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses an ESMT device, to reduce code size.
+
+config MTD_SPI_NAND_FMSH
+	bool "FMSH SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for FMSH SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses an FMSH device, to reduce code size.
+
+config MTD_SPI_NAND_FORESEE
+	bool "Foresee SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Foresee SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Foresee device, to reduce code size.
+
+config MTD_SPI_NAND_GIGADEVICE
+	bool "GigaDevice SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for GigaDevice SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a GigaDevice device, to reduce code size.
+
+config MTD_SPI_NAND_MACRONIX
+	bool "Macronix SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Macronix SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Macronix device, to reduce code size.
+
+config MTD_SPI_NAND_MICRON
+	bool "Micron SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Micron SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Micron device, to reduce code size.
+
+config MTD_SPI_NAND_PARAGON
+	bool "Paragon SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Paragon SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Paragon device, to reduce code size.
+
+config MTD_SPI_NAND_SKYHIGH
+	bool "SkyHigh SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for SkyHigh SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a SkyHigh device, to reduce code size.
+
+config MTD_SPI_NAND_TOSHIBA
+	bool "Toshiba SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Toshiba SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Toshiba device, to reduce code size.
+
+config MTD_SPI_NAND_WINBOND
+	bool "Winbond SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for Winbond SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses a Winbond device, to reduce code size.
+
+config MTD_SPI_NAND_XTX
+	bool "XTX SPI NAND support"
+	default y if !XPL_BUILD
+	help
+	  Enable support for XTX SPI NAND devices.
+	  In SPL/TPL this defaults to n; enable only if the target
+	  board uses an XTX device, to reduce code size.
+
+endif
