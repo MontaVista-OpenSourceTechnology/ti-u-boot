@@ -190,3 +190,9 @@
 &cpsw_port1 {
 	bootph-all;
 };
+
+&ospi0 {
+	flash@0 {
+		spi-max-frequency = <25000000>;
+	};
+};
