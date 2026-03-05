@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0+
-# Copyright (C) 2022-2025 Texas Instruments Incorporated - https://www.ti.com/
+# Copyright (C) 2022-2026 Texas Instruments Incorporated - https://www.ti.com/
 #
 # Resource management configuration for J722S
 #
@@ -244,7 +244,7 @@ tifs-rm-cfg:
             subhdr:
                 magic: 0x7B25
                 size: 8
-            resasg_entries_size: 992
+            resasg_entries_size: 1056
             reserved: 0
     resasg_entries:
         -
@@ -267,21 +267,21 @@ tifs-rm-cfg:
             reserved: 0
         -
             start_resource: 22
+            num_resource: 4
+            type: 1677
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 26
             num_resource: 2
             type: 1677
             host_id: 30
             reserved: 0
         -
-            start_resource: 24
-            num_resource: 4
-            type: 1677
-            host_id: 22
-            reserved: 0
-        -
             start_resource: 28
             num_resource: 4
             type: 1677
-            host_id: 38
+            host_id: 22
             reserved: 0
         -
             start_resource: 57
@@ -305,13 +305,13 @@ tifs-rm-cfg:
             start_resource: 78
             num_resource: 2
             type: 1678
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 80
             num_resource: 2
             type: 1678
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 32
@@ -335,13 +335,13 @@ tifs-rm-cfg:
             start_resource: 50
             num_resource: 2
             type: 1679
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 52
             num_resource: 2
             type: 1679
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 54
@@ -369,21 +369,21 @@ tifs-rm-cfg:
             reserved: 0
         -
             start_resource: 22
+            num_resource: 4
+            type: 1696
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 26
             num_resource: 2
             type: 1696
             host_id: 30
             reserved: 0
         -
-            start_resource: 24
-            num_resource: 4
-            type: 1696
-            host_id: 22
-            reserved: 0
-        -
             start_resource: 28
             num_resource: 4
             type: 1696
-            host_id: 38
+            host_id: 22
             reserved: 0
         -
             start_resource: 0
@@ -407,13 +407,13 @@ tifs-rm-cfg:
             start_resource: 21
             num_resource: 2
             type: 1697
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 23
             num_resource: 2
             type: 1697
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 0
@@ -437,13 +437,13 @@ tifs-rm-cfg:
             start_resource: 18
             num_resource: 2
             type: 1698
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 20
             num_resource: 2
             type: 1698
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 22
@@ -599,25 +599,37 @@ tifs-rm-cfg:
             start_resource: 13
             num_resource: 3
             type: 1936
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 16
             num_resource: 3
             type: 1936
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 19
-            num_resource: 64
+            num_resource: 32
             type: 1937
             host_id: 12
             reserved: 0
         -
             start_resource: 19
-            num_resource: 64
+            num_resource: 32
             type: 1937
-            host_id: 36
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 51
+            num_resource: 32
+            type: 1937
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 51
+            num_resource: 32
+            type: 1937
+            host_id: 30
             reserved: 0
         -
             start_resource: 83
@@ -653,25 +665,37 @@ tifs-rm-cfg:
             start_resource: 112
             num_resource: 3
             type: 1942
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 115
             num_resource: 3
             type: 1942
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 118
-            num_resource: 16
+            num_resource: 6
             type: 1943
             host_id: 12
             reserved: 0
         -
             start_resource: 118
-            num_resource: 16
+            num_resource: 6
             type: 1943
-            host_id: 36
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 124
+            num_resource: 10
+            type: 1943
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 124
+            num_resource: 10
+            type: 1943
+            host_id: 30
             reserved: 0
         -
             start_resource: 134
@@ -719,25 +743,37 @@ tifs-rm-cfg:
             start_resource: 13
             num_resource: 3
             type: 1955
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 16
             num_resource: 3
             type: 1955
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 19
-            num_resource: 8
+            num_resource: 4
             type: 1956
             host_id: 12
             reserved: 0
         -
             start_resource: 19
-            num_resource: 8
+            num_resource: 4
             type: 1956
-            host_id: 36
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 23
+            num_resource: 4
+            type: 1956
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 23
+            num_resource: 4
+            type: 1956
+            host_id: 30
             reserved: 0
         -
             start_resource: 27
@@ -773,13 +809,13 @@ tifs-rm-cfg:
             start_resource: 13
             num_resource: 3
             type: 1961
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 16
             num_resource: 3
             type: 1961
-            host_id: 38
+            host_id: 30
             reserved: 0
         -
             start_resource: 0
@@ -803,37 +839,49 @@ tifs-rm-cfg:
             start_resource: 13
             num_resource: 3
             type: 1962
-            host_id: 30
+            host_id: 38
             reserved: 0
         -
             start_resource: 16
             num_resource: 3
             type: 1962
+            host_id: 30
+            reserved: 0
+        -
+            start_resource: 19
+            num_resource: 1
+            type: 1963
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 19
+            num_resource: 1
+            type: 1963
             host_id: 38
             reserved: 0
         -
             start_resource: 19
-            num_resource: 1
-            type: 1963
-            host_id: 12
-            reserved: 0
-        -
-            start_resource: 19
-            num_resource: 1
-            type: 1963
-            host_id: 36
-            reserved: 0
-        -
-            start_resource: 19
-            num_resource: 16
+            num_resource: 6
             type: 1964
             host_id: 12
             reserved: 0
         -
             start_resource: 19
-            num_resource: 16
+            num_resource: 6
             type: 1964
-            host_id: 36
+            host_id: 38
+            reserved: 0
+        -
+            start_resource: 25
+            num_resource: 10
+            type: 1964
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 25
+            num_resource: 10
+            type: 1964
+            host_id: 30
             reserved: 0
         -
             start_resource: 20
