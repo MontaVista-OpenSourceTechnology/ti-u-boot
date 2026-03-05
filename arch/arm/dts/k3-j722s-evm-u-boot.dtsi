@@ -20,3 +20,13 @@
 &main_bcdma {
 	bootph-pre-ram;
 };
+
+&ospi0 {
+	flash@0 {
+		spi-max-frequency = <25000000>;
+	};
+
+	nand@0 {
+		spi-max-frequency = <25000000>;
+	};
+};
