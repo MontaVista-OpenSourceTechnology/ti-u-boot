@@ -110,6 +110,13 @@ config ROCKCHIP_OTP
 	  addressing and a length or through child-nodes that are generated
 	  based on the e-fuse map retrieved from the DTS.
 
+config MMIO_EFUSE
+	bool "Generic MMIO eFuse/register reader"
+	depends on MISC
+	help
+	  Enable (read-only) access for memory-mapped eFuse or register
+	  blocks.
+
 config ROCKCHIP_IODOMAIN
 	bool "Rockchip IO-domain driver support"
 	depends on DM_REGULATOR && ARCH_ROCKCHIP

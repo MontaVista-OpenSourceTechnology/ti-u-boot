@@ -5,10 +5,14 @@
  */
 
 #include <dm.h>
+#include <log.h>
+#include <nvmem.h>
 #include <soc.h>
 
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
+
+#define GP_SW1_ADR_MASK		0xF
 
 struct soc_ti_k3_plat {
 	const char *family;
@@ -83,12 +87,35 @@ static char *j721e_rev_string_map[] = {
 	"1.0", "1.1", "2.0",
 };
 
+static char *am62p_gpsw_rev_string_map[] = {
+	"1.0", "1.1", "1.2",
+};
+
 static char *typical_rev_string_map[] = {
 	"1.0", "2.0", "3.0",
 };
 
-static const char *get_rev_string(u32 idreg)
+static int
+soc_ti_k3_get_gpsw_variant(struct udevice *dev)
 {
+	struct nvmem_cell cell;
+	u32 gpsw_val = 0;
+	int ret;
+
+	ret = nvmem_cell_get_by_name(dev, "gpsw1", &cell);
+	if (ret)
+		return ret;
+
+	ret = nvmem_cell_read(&cell, &gpsw_val, sizeof(gpsw_val));
+	if (ret)
+		return ret;
+
+	return gpsw_val & GP_SW1_ADR_MASK;
+}
+
+static const char *get_rev_string(struct udevice *dev, u32 idreg)
+{
+	int gpsw_variant;
 	u32 rev;
 	u32 soc;
 
@@ -104,7 +131,15 @@ static const char *get_rev_string(u32 idreg)
 		if (rev >= ARRAY_SIZE(j721e_rev_string_map))
 			goto bail;
 		return j721e_rev_string_map[rev];
-
+	case JTAG_ID_PARTNO_AM62PX:
+		gpsw_variant = soc_ti_k3_get_gpsw_variant(dev);
+		if (gpsw_variant < 0 ||
+		    gpsw_variant >= ARRAY_SIZE(am62p_gpsw_rev_string_map)) {
+			log_warning("Failed to get silicon variant (%d), set SR1.0\n",
+				    gpsw_variant);
+			gpsw_variant = 0;
+		}
+		return am62p_gpsw_rev_string_map[gpsw_variant];
 	default:
 		if (rev >= ARRAY_SIZE(typical_rev_string_map))
 			goto bail;
@@ -141,8 +176,8 @@ static const struct soc_ops soc_ti_k3_ops = {
 int soc_ti_k3_probe(struct udevice *dev)
 {
 	struct soc_ti_k3_plat *plat = dev_get_plat(dev);
-	u32 idreg;
 	void *idreg_addr;
+	u32 idreg;
 
 	idreg_addr = dev_read_addr_ptr(dev);
 	if (!idreg_addr)
@@ -151,7 +186,7 @@ int soc_ti_k3_probe(struct udevice *dev)
 	idreg = readl(idreg_addr);
 
 	plat->family = get_family_string(idreg);
-	plat->revision = get_rev_string(idreg);
+	plat->revision = get_rev_string(dev, idreg);
 
 	return 0;
 }
@@ -168,4 +203,5 @@ U_BOOT_DRIVER(soc_ti_k3) = {
 	.of_match       = soc_ti_k3_ids,
 	.probe          = soc_ti_k3_probe,
 	.plat_auto	= sizeof(struct soc_ti_k3_plat),
+	.flags		= DM_FLAG_PRE_RELOC,
 };
