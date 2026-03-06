@@ -242,6 +242,9 @@ void board_init_f(ulong dummy)
 	if (wkup_ctrl_is_lpm_exit()) {
 		u64 meta_data_addr;
 
+		if (IS_ENABLED(CONFIG_TI_K3_BOARD_LFOSC))
+			enable_32k_lfosc();
+
 		ret = wkup_r5f_am62_lpm_meta_data_addr(&meta_data_addr);
 		if (ret)
 			panic("Failed to get LPM meta data address %d\n", ret);
