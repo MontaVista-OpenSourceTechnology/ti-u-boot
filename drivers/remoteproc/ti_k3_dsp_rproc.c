@@ -365,7 +365,8 @@ static int k3_dsp_of_get_memories(struct udevice *dev)
 		/* C71 cores only have a L1P Cache, there are no L1P SRAMs */
 		if (((device_is_compatible(dev, "ti,j721e-c71-dsp")) ||
 		    (device_is_compatible(dev, "ti,j721s2-c71-dsp")) ||
-		    (device_is_compatible(dev, "ti,am62a-c7xv-dsp"))) &&
+		    (device_is_compatible(dev, "ti,am62a-c7xv-dsp")) ||
+		    (device_is_compatible(dev, "ti,j722s-c7xv-dsp"))) &&
 		    !strcmp(mem_names[i], "l1pram")) {
 			dsp->mem[i].bus_addr = FDT_ADDR_T_NONE;
 			dsp->mem[i].dev_addr = FDT_ADDR_T_NONE;
@@ -373,7 +374,8 @@ static int k3_dsp_of_get_memories(struct udevice *dev)
 			dsp->mem[i].size = 0;
 			continue;
 		}
-		if (device_is_compatible(dev, "ti,am62a-c7xv-dsp") &&
+		if (((device_is_compatible(dev, "ti,am62a-c7xv-dsp")) ||
+		     (device_is_compatible(dev, "ti,j722s-c7xv-dsp"))) &&
 		    !strcmp(mem_names[i], "l1dram")) {
 			dsp->mem[i].bus_addr = FDT_ADDR_T_NONE;
 			dsp->mem[i].dev_addr = FDT_ADDR_T_NONE;
@@ -493,6 +495,7 @@ static const struct udevice_id k3_dsp_ids[] = {
 	{ .compatible = "ti,j721e-c71-dsp", .data = (ulong)&c71_data, },
 	{ .compatible = "ti,j721s2-c71-dsp", .data = (ulong)&c71_data, },
 	{ .compatible = "ti,am62a-c7xv-dsp", .data = (ulong)&c71_data, },
+	{ .compatible = "ti,j722s-c7xv-dsp", .data = (ulong)&c71_data, },
 	{}
 };
 
