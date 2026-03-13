@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// SPDX-License-Identifier: GPL-2.0
 /**
- * Microtips integrated OLDI panel (MF-103HIEB0GA0) (SK-LCD2) DT overlay for AM62PS5-SK
+ * Microtips integrated OLDI panel (MF-101HIEBCAF0) and touch DT overlay for J722S-EVM
  *
- * Panel datasheet: https://simplespec.microtipsusa.com/uploads/spec/datasheetFile/2660/13-103HIEB0GA0-S_V1.0_20211206.pdf
+ * Panel datasheet: https://simplespec.microtipsusa.com/uploads/spec/datasheetFile/2588/13-101HIEBCAF0-S_V1.1_20221104.pdf
  *
  * Copyright (C) 2024 Texas Instruments Incorporated - http://www.ti.com/
  */
@@ -15,8 +15,7 @@
 
 &{/} {
 	display {
-		compatible = "microtips,mf-103hieb0ga0", "panel-simple";
-
+		compatible = "microtips,mf-101hiebcaf0", "panel-simple";
 		/*
 		* Note that the OLDI TX 0 transmits the odd set of pixels
 		* while the OLDI TX 1 transmits the even set. This is a
@@ -110,5 +109,18 @@
 			reg = <1>;
 			remote-endpoint = <&oldi1_dss0_in>;
 		};
+	};
+};
+
+&main_i2c1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	touchscreen@41 {
+		compatible = "ilitek,ili251x";
+		reg = <0x41>;
+		interrupt-parent = <&exp2>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&exp2 3 GPIO_ACTIVE_LOW>;
 	};
 };
